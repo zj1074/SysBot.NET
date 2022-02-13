@@ -74,7 +74,17 @@ namespace SysBot.Pokemon.QQ
                     if (groupId != GroupId || senderQQ == client.QQ)
                         return;
 
-                    HandleFileUpload(receiver);
+                    if (cfg.AliveMsg == receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text)
+                    {
+                        MessageManager.SendGroupMessageAsync(cfg.AliveMsg);
+                        return;
+                    }
+
+                    if (HandleFileUpload(receiver))
+                    {
+                        return;
+                    }
+
                     var response = HandleCommand(receiver);
                     if (response.Length == 0)
                         return;
@@ -95,7 +105,7 @@ namespace SysBot.Pokemon.QQ
                 {
                     await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为晶灿钻石明亮珍珠");
                 }
-                else if(typeof(T) == typeof(PA8))
+                else if (typeof(T) == typeof(PA8))
                 {
                     await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为阿尔宙斯");
                 }
@@ -103,11 +113,11 @@ namespace SysBot.Pokemon.QQ
         }
 
         // todo: revise
-        private string HandleFileUpload(GroupMessageReceiver receiver)
+        private bool HandleFileUpload(GroupMessageReceiver receiver)
         {
             var senderQQ = receiver.Sender.Id;
             var groupId = receiver.Sender.Group.Id;
-            var qqMsg = string.Empty;
+            var result = false;
 
             var fileMessages = receiver.MessageChain.OfType<FileMessage>();
 
@@ -125,7 +135,7 @@ namespace SysBot.Pokemon.QQ
                 else if (typeof(T) == typeof(PA8) &&
                          fileName.EndsWith(".pa8", StringComparison.OrdinalIgnoreCase))
                     operationType = "pa8";
-                else return qqMsg;
+                else return result;
 
                 PKM pkm;
                 try
@@ -138,10 +148,10 @@ namespace SysBot.Pokemon.QQ
                     {
                         case "pk8" or "pb8" when data.Length != 344:
                             MessageManager.SendGroupMessageAsync("非法文件");
-                            return qqMsg;
+                            return result;
                         case "pa8" when data.Length != 376:
                             MessageManager.SendGroupMessageAsync("非法文件");
-                            return qqMsg;
+                            return result;
                     }
 
                     switch (operationType)
@@ -155,7 +165,7 @@ namespace SysBot.Pokemon.QQ
                         case "pa8":
                             pkm = new PA8(data);
                             break;
-                        default: return qqMsg;
+                        default: return result;
                     }
 
                     LogUtil.LogText($"operationType:{operationType}");
@@ -164,7 +174,7 @@ namespace SysBot.Pokemon.QQ
                 catch (Exception ex)
                 {
                     LogUtil.LogText(ex.ToString());
-                    return qqMsg;
+                    return result;
                 }
 
                 MessageManager.SendGroupMessageAsync(receiver.Sender.Name + " 上传了 " + fileName + " 文件");
@@ -173,15 +183,16 @@ namespace SysBot.Pokemon.QQ
                 if (_)
                 {
                     GetUserFromQueueAndGenerateCodeToTrade(senderQQ);
-                    msg = string.Empty;
+                    return true;
                 }
                 else
                 {
                     MessageManager.SendGroupMessageAsync(msg);
+                    return false;
                 }
             }
 
-            return qqMsg;
+            return false;
         }
 
         private string HandleCommand(GroupMessageReceiver receiver)

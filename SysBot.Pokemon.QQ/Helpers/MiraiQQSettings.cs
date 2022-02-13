@@ -13,5 +13,7 @@ namespace SysBot.Pokemon.QQ
         public string VerifyKey { get; set; } = string.Empty;
 
         public string GroupId { get; set; } = string.Empty;
+
+        public string AliveMsg { get; set; } = "hello";
     }
 }

@@ -1,8 +1,9 @@
 # SysBot.Pokemon.QQ
 ![License](https://img.shields.io/badge/License-AGPLv3-blue.svg)
+
 Most codes are based on [SysBot.Pokemon.Twitch](https://github.com/kwsch/SysBot.NET/tree/master/SysBot.Pokemon.Twitch)
 
-Uses Mirai.Net as a dependency via Nuget.
+Uses [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) as a dependency via Nuget.
 
 ## Support QQ by mirai.net:
 - Support [ALM-Showdown-Sets](https://github.com/architdate/PKHeX-Plugins/wiki/ALM-Showdown-Sets)

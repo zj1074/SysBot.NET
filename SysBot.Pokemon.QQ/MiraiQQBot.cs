@@ -76,7 +76,7 @@ namespace SysBot.Pokemon.QQ
 
                     if (cfg.AliveMsg == receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text)
                     {
-                        MessageManager.SendGroupMessageAsync(cfg.AliveMsg);
+                        MessageManager.SendGroupMessageAsync(groupId, cfg.AliveMsg);
                         return;
                     }
 

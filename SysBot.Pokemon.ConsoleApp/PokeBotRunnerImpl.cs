@@ -3,6 +3,7 @@ using SysBot.Pokemon.Discord;
 using SysBot.Pokemon.Twitch;
 using System.Threading;
 using System.Threading.Tasks;
+using SysBot.Pokemon.QQ;
 
 namespace SysBot.Pokemon.ConsoleApp
 {
@@ -20,6 +21,9 @@ namespace SysBot.Pokemon.ConsoleApp
         {
             AddDiscordBot(Hub.Config.Discord);
             AddTwitchBot(Hub.Config.Twitch);
+            //add qq bot
+            var qqBot = new MiraiQQBot<T>(Hub, "机器人启动成功");
+            qqBot.StartingDistribution();
         }
 
         private void AddTwitchBot(TwitchSettings config)

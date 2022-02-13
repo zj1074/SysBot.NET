@@ -5,6 +5,7 @@ using SysBot.Pokemon.WinForms;
 using SysBot.Pokemon.YouTube;
 using System.Threading;
 using System.Threading.Tasks;
+using SysBot.Pokemon.QQ;
 
 namespace SysBot.Pokemon
 {
@@ -24,6 +25,7 @@ namespace SysBot.Pokemon
             AddDiscordBot(Hub.Config.Discord.Token);
             AddTwitchBot(Hub.Config.Twitch);
             AddYouTubeBot(Hub.Config.YouTube);
+            AddQQBot();
         }
 
         private void AddTwitchBot(TwitchSettings config)
@@ -70,6 +72,14 @@ namespace SysBot.Pokemon
                 return;
             var bot = new SysCord<T>(this);
             Task.Run(() => bot.MainAsync(apiToken, CancellationToken.None));
+        }
+
+        private void AddQQBot()
+        {
+            if (!MiraiQQBot<T>.HasConfig()) return;
+            //add qq bot
+            var qqBot = new MiraiQQBot<T>(Hub, "机器人启动成功");
+            qqBot.StartingDistribution();
         }
     }
 }

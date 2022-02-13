@@ -22,8 +22,7 @@ namespace SysBot.Pokemon.ConsoleApp
             AddDiscordBot(Hub.Config.Discord);
             AddTwitchBot(Hub.Config.Twitch);
             //add qq bot
-            var qqBot = new MiraiQQBot<T>(Hub, "机器人启动成功");
-            qqBot.StartingDistribution();
+            AddQQBot();
         }
 
         private void AddTwitchBot(TwitchSettings config)
@@ -53,6 +52,14 @@ namespace SysBot.Pokemon.ConsoleApp
 
             var bot = new SysCord<T>(this);
             Task.Run(() => bot.MainAsync(token, CancellationToken.None), CancellationToken.None);
+        }
+
+        private void AddQQBot()
+        {
+            if (!MiraiQQBot<T>.HasConfig()) return;
+            //add qq bot
+            var qqBot = new MiraiQQBot<T>(Hub, "机器人启动成功");
+            qqBot.StartingDistribution();
         }
     }
 }

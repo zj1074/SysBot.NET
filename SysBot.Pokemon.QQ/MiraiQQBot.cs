@@ -26,9 +26,14 @@ namespace SysBot.Pokemon.QQ
         internal static TradeQueueInfo<T> Info => Hub.Queues.Info;
         internal static readonly List<MiraiQQQueue<T>> QueuePool = new();
 
+        public static bool HasConfig()
+        {
+            return File.Exists(ConfigPath);
+        }
+
         public MiraiQQSettings ReadConfig()
         {
-            if (!File.Exists(ConfigPath))
+            if (!HasConfig())
             {
                 return DefaultSettings;
             }

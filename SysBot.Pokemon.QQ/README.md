@@ -18,14 +18,14 @@ Uses [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) as a dependency via Nuge
 - Use the miraiQQconfig template and replace your QQ number and your trade QQ group number, save as miraiQQconfig.json to the folder of your `SysBot.Pokemon.ConsoleApp.exe` or `SysBot.exe`
 - Run the `SysBot.Pokemon.ConsoleApp.exe` or `SysBot.exe`
 - Send `$trade` and press `ctrl+enter` to the next line, then paste your ALM-Showdown-Sets before sending your QQ message
-- Or you can upload a PK8/PB8/PA8 file directly
+- Or you can upload a PK8/PB8/PA8 file directly(Do not forget to set your bot as administrator in your QQ group)
 
 ## miraiQQconfig template
 ```
 {
-  "Address": "ip and port of you mirai-api-http config",
+  "Address": "localhost:8080",
   "QQ": "your QQ number",
-  "VerifyKey": "VerifyKey of your mirai-api-http config",
+  "VerifyKey": "1234567890",
   "GroupId": "trade QQ group number"
 }
 ```

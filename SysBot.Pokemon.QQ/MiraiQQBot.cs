@@ -147,10 +147,10 @@ namespace SysBot.Pokemon.QQ
                     switch (operationType)
                     {
                         case "pk8" or "pb8" when data.Length != 344:
-                            MessageManager.SendGroupMessageAsync("非法文件");
+                            MessageManager.SendGroupMessageAsync(groupId, "非法文件");
                             return result;
                         case "pa8" when data.Length != 376:
-                            MessageManager.SendGroupMessageAsync("非法文件");
+                            MessageManager.SendGroupMessageAsync(groupId, "非法文件");
                             return result;
                     }
 
@@ -177,7 +177,7 @@ namespace SysBot.Pokemon.QQ
                     return result;
                 }
 
-                MessageManager.SendGroupMessageAsync(receiver.Sender.Name + " 上传了 " + fileName + " 文件");
+                MessageManager.SendGroupMessageAsync(groupId, receiver.Sender.Name + " 上传了 " + fileName + " 文件");
                 var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(pkm, receiver.Sender.Name,
                     ulong.Parse(senderQQ), out string msg);
                 if (_)
@@ -187,7 +187,7 @@ namespace SysBot.Pokemon.QQ
                 }
                 else
                 {
-                    MessageManager.SendGroupMessageAsync(msg);
+                    MessageManager.SendGroupMessageAsync(groupId, msg);
                     return false;
                 }
             }

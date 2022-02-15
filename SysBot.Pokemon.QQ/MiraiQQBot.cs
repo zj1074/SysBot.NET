@@ -16,56 +16,26 @@ namespace SysBot.Pokemon.QQ
 {
     public class MiraiQQBot<T> where T : PKM, new()
     {
-        private const string ConfigPath = "miraiQQconfig.json";
-        private static MiraiQQSettings DefaultSettings = new();
         private static PokeTradeHub<T> Hub = default!;
 
-        private readonly MiraiBot client;
-        private static string GroupId;
-        private static string WelcomeString = "欢迎使用SysBot.NET";
         internal static TradeQueueInfo<T> Info => Hub.Queues.Info;
         internal static readonly List<MiraiQQQueue<T>> QueuePool = new();
+        private readonly MiraiBot client;
+        private readonly string GroupId;
+        private readonly QQSettings Settings;
 
-        public static bool HasConfig()
-        {
-            return File.Exists(ConfigPath);
-        }
-
-        public MiraiQQSettings ReadConfig()
-        {
-            if (!HasConfig())
-            {
-                return DefaultSettings;
-            }
-
-            try
-            {
-                var lines = File.ReadAllText(ConfigPath);
-                var cfg = JsonConvert.DeserializeObject<MiraiQQSettings>(lines) ?? DefaultSettings;
-                return cfg;
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-                LogUtil.LogError("miraiQQ config error: {}", "MiraiQQBot");
-                return DefaultSettings;
-            }
-        }
-
-        public MiraiQQBot(PokeTradeHub<T> hub, string message)
+        public MiraiQQBot(QQSettings settings, PokeTradeHub<T> hub)
         {
             Hub = hub;
-            WelcomeString = message;
-            var cfg = ReadConfig();
+            Settings = settings;
 
             client = new MiraiBot
             {
-                Address = cfg.Address,
-                QQ = cfg.QQ,
-                VerifyKey = cfg.VerifyKey
+                Address = settings.Address,
+                QQ = settings.QQ,
+                VerifyKey = settings.VerifyKey
             };
-            GroupId = cfg.GroupId;
+            GroupId = settings.GroupId;
             client.MessageReceived.OfType<GroupMessageReceiver>()
                 .Subscribe(receiver =>
                 {
@@ -74,9 +44,9 @@ namespace SysBot.Pokemon.QQ
                     if (groupId != GroupId || senderQQ == client.QQ)
                         return;
 
-                    if (cfg.AliveMsg == receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text)
+                    if (settings.AliveMsg == receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text)
                     {
-                        MessageManager.SendGroupMessageAsync(groupId, cfg.AliveMsg);
+                        MessageManager.SendGroupMessageAsync(groupId, settings.AliveMsg);
                         return;
                     }
 
@@ -85,9 +55,7 @@ namespace SysBot.Pokemon.QQ
                         return;
                     }
 
-                    var response = HandleCommand(receiver);
-                    if (response.Length == 0)
-                        return;
+                    HandleCommand(receiver);
                 });
         }
 
@@ -96,7 +64,8 @@ namespace SysBot.Pokemon.QQ
             Task.Run(async () =>
             {
                 await client.LaunchAsync();
-                await MessageManager.SendGroupMessageAsync(GroupId, WelcomeString);
+                await MessageManager.SendGroupMessageAsync(GroupId, Settings.MessageStart);
+                await Task.Delay(1_000).ConfigureAwait(false);
                 if (typeof(T) == typeof(PK8))
                 {
                     await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为剑盾");
@@ -195,15 +164,16 @@ namespace SysBot.Pokemon.QQ
             return false;
         }
 
-        private string HandleCommand(GroupMessageReceiver receiver)
+        private void HandleCommand(GroupMessageReceiver receiver)
         {
-            string qqMsg = string.Empty;
+            string qqMsg;
             try
             {
                 qqMsg = receiver.MessageChain.OfType<PlainMessage>().First().Text;
             }
             catch
             {
+                return;
             }
 
             LogUtil.LogText($"debug qqMsg:{qqMsg}");
@@ -215,7 +185,7 @@ namespace SysBot.Pokemon.QQ
             if (split.Length > 0)
             {
                 c = split[0];
-                args = qqMsg.Substring(qqMsg.IndexOf('\n') + 1);
+                args = qqMsg[(qqMsg.IndexOf('\n') + 1)..];
             }
 
             switch (c)
@@ -225,13 +195,10 @@ namespace SysBot.Pokemon.QQ
                     if (_)
                     {
                         GetUserFromQueueAndGenerateCodeToTrade(qq);
-                        msg = string.Empty;
                     }
 
-                    return msg;
-
-
-                default: return string.Empty;
+                    MessageManager.SendGroupMessageAsync(GroupId, msg);
+                    break;
             }
         }
 

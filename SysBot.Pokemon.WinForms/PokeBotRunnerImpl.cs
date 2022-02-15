@@ -14,18 +14,24 @@ namespace SysBot.Pokemon
     /// </summary>
     public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
     {
-        public PokeBotRunnerImpl(PokeTradeHub<T> hub, BotFactory<T> fac) : base(hub, fac) { }
-        public PokeBotRunnerImpl(PokeTradeHubConfig config, BotFactory<T> fac) : base(config, fac) { }
+        public PokeBotRunnerImpl(PokeTradeHub<T> hub, BotFactory<T> fac) : base(hub, fac)
+        {
+        }
+
+        public PokeBotRunnerImpl(PokeTradeHubConfig config, BotFactory<T> fac) : base(config, fac)
+        {
+        }
 
         private TwitchBot<T>? Twitch;
         private YouTubeBot<T>? YouTube;
+        private MiraiQQBot<T>? QQ;
 
         protected override void AddIntegrations()
         {
             AddDiscordBot(Hub.Config.Discord.Token);
             AddTwitchBot(Hub.Config.Twitch);
             AddYouTubeBot(Hub.Config.YouTube);
-            AddQQBot();
+            AddQQBot(Hub.Config.QQ);
         }
 
         private void AddTwitchBot(TwitchSettings config)
@@ -74,12 +80,14 @@ namespace SysBot.Pokemon
             Task.Run(() => bot.MainAsync(apiToken, CancellationToken.None));
         }
 
-        private void AddQQBot()
+        private void AddQQBot(QQSettings config)
         {
-            if (!MiraiQQBot<T>.HasConfig()) return;
+            if (string.IsNullOrWhiteSpace(config.VerifyKey) || string.IsNullOrWhiteSpace(config.Address)) return;
+            if (string.IsNullOrWhiteSpace(config.QQ) || string.IsNullOrWhiteSpace(config.GroupId)) return;
+            if (QQ != null) return;
             //add qq bot
-            var qqBot = new MiraiQQBot<T>(Hub, "机器人启动成功");
-            qqBot.StartingDistribution();
+            QQ = new MiraiQQBot<T>(config, Hub);
+            QQ.StartingDistribution();
         }
     }
 }

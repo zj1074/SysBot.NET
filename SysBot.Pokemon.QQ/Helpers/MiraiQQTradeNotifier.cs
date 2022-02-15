@@ -60,7 +60,7 @@ namespace SysBot.Pokemon.QQ
                 $"@{info.Trainer.TrainerName} (ID: {info.ID}): Initializing trade{receive} with you. Please be ready.";
             msg += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(msg);
-            SendWhisperMessage(info.Trainer.ID.ToString(), msg);
+            SendMessage(msg);
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -70,7 +70,7 @@ namespace SysBot.Pokemon.QQ
             var message = $"I'm waiting for you{trainer}! My IGN is {routine.InGameName}.";
             message += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(message);
-            SendWhisperMessage(info.Trainer.ID.ToString(), $"@{info.Trainer.TrainerName} {message}");
+            SendMessage($"@{info.Trainer.TrainerName} {message}");
         }
 
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeSummary message)

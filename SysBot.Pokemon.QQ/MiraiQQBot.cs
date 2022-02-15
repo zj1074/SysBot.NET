@@ -250,7 +250,8 @@ namespace SysBot.Pokemon.QQ
                 int code = rnd.Next(0, 9999_9999); //Util.ToInt32(msg);
                 var _ = AddToTradeQueue(user.Pokemon, code, user.QQ, user.DisplayName, RequestSignificance.Favored,
                     PokeRoutineType.LinkTrade, out string message);
-                MessageManager.SendTempMessageAsync(qq, GroupId, message);
+                //MessageManager.SendTempMessageAsync(qq, GroupId, message);
+                MessageManager.SendGroupMessageAsync(GroupId, message);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)

@@ -4,6 +4,9 @@ using SysBot.Base;
 using SysBot.Pokemon;
 using System;
 using System.Linq;
+using Mirai.Net.Data.Messages;
+using Mirai.Net.Data.Messages.Concretes;
+using Mirai.Net.Utils.Scaffolds;
 
 namespace SysBot.Pokemon.QQ
 {
@@ -31,7 +34,7 @@ namespace SysBot.Pokemon.QQ
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, string message)
         {
             LogUtil.LogText(message);
-            SendMessage($"@{info.Trainer.TrainerName}: {message}");
+            //SendMessage($"@{info.Trainer.TrainerName}: {message}");
         }
 
         public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg)
@@ -39,7 +42,7 @@ namespace SysBot.Pokemon.QQ
             OnFinish?.Invoke(routine);
             var line = $"@{info.Trainer.TrainerName}: Trade canceled, {msg}";
             LogUtil.LogText(line);
-            SendMessage(line);
+            SendMessage(new AtMessage($"{info.Trainer.ID}").Append(" 取消"));
         }
 
         public void TradeFinished(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, T result)
@@ -50,7 +53,7 @@ namespace SysBot.Pokemon.QQ
                 ? $"Trade finished. Enjoy your {(Species) tradedToUser}!"
                 : "Trade finished!");
             LogUtil.LogText(message);
-            SendMessage(message);
+            SendMessage(new AtMessage($"{info.Trainer.ID}").Append(" 完成"));
         }
 
         public void TradeInitialize(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -60,7 +63,7 @@ namespace SysBot.Pokemon.QQ
                 $"@{info.Trainer.TrainerName} (ID: {info.ID}): Initializing trade{receive} with you. Please be ready.";
             msg += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(msg);
-            SendMessage(msg);
+            SendMessage(new AtMessage($"{info.Trainer.ID}").Append($" 准备交换\n连接密码:{info.Code:0000 0000}\n我的名字:{routine.InGameName}"));
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -70,7 +73,7 @@ namespace SysBot.Pokemon.QQ
             var message = $"I'm waiting for you{trainer}! My IGN is {routine.InGameName}.";
             message += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(message);
-            SendMessage($"@{info.Trainer.TrainerName} {message}");
+            SendMessage(new AtMessage($"{info.Trainer.ID}").Append($" 寻找中"));
         }
 
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeSummary message)
@@ -91,12 +94,13 @@ namespace SysBot.Pokemon.QQ
 
         private void SendMessage(string message)
         {
-            MessageManager.SendGroupMessageAsync(GroupId, message);
+            var _ = MessageManager.SendGroupMessageAsync(GroupId, message).Result;
+            LogUtil.LogInfo($"msgId:{_} {message}", "debug");
         }
-        
-        private void SendWhisperMessage(string qq, string message)
+
+        private void SendMessage(MessageBase[] message)
         {
-            MessageManager.SendTempMessageAsync(qq, GroupId, message);
+            var _ = MessageManager.SendGroupMessageAsync(GroupId, message).Result;
         }
     }
 }

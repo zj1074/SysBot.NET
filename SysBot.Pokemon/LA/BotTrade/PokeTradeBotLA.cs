@@ -801,7 +801,7 @@ namespace SysBot.Pokemon
         private async Task<bool> SetBoxPkmWithSwappedIDDetailsPLA(PA8 toSend, PA8 offered, SAV8LA sav, CancellationToken token)
         {
             var cln = (PA8)toSend.Clone();
-            cln.OT_Gender = offered.Gender;
+            cln.OT_Gender = offered.OT_Gender;
             cln.TrainerID7 = offered.TrainerID7;
             cln.TrainerSID7 = offered.TrainerSID7;
             cln.Language = offered.Language;

@@ -229,6 +229,8 @@ namespace SysBot.Pokemon.QQ
                     PokeRoutineType.LinkTrade, out string message);
                 if (!_)
                     await MessageManager.SendGroupMessageAsync(GroupId, new AtMessage(qq).Append(" 已在队列中"));
+                else
+                    await MessageManager.SendGroupMessageAsync(GroupId, new AtMessage(qq).Append(message));
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
@@ -260,13 +262,15 @@ namespace SysBot.Pokemon.QQ
             }
 
             var position = Info.CheckPosition(userID, type);
-            msg = $"@{name}: Added to the {type} queue, unique ID: {detail.ID}. Current Position: {position.Position}";
+            //msg = $"@{name}: Added to the {type} queue, unique ID: {detail.ID}. Current Position: {position.Position}";
+            msg = $" 你在第{position.Position}位";
 
             var botct = Info.Hub.Bots.Count;
             if (position.Position > botct)
             {
                 var eta = Info.Hub.Config.Queues.EstimateDelay(position.Position, botct);
-                msg += $". Estimated: {eta:F1} minutes.";
+                //msg += $". Estimated: {eta:F1} minutes.";
+                msg += $", 需等待约{eta:F1}分钟";
             }
 
             return true;

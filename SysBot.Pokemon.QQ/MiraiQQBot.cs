@@ -6,12 +6,15 @@ using Newtonsoft.Json;
 using PKHeX.Core;
 using SysBot.Base;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Mirai.Net.Utils.Scaffolds;
+using System.Text.RegularExpressions;
+using Mirai.Net.Data.Events.Concretes.Group;
 
 namespace SysBot.Pokemon.QQ
 {
@@ -21,50 +24,57 @@ namespace SysBot.Pokemon.QQ
 
         internal static TradeQueueInfo<T> Info => Hub.Queues.Info;
         internal static readonly List<MiraiQQQueue<T>> QueuePool = new();
-        private readonly MiraiBot client;
+        private readonly MiraiBot Client;
         private readonly string GroupId;
         private readonly QQSettings Settings;
+        // concurrent?
+        internal static ConcurrentDictionary<string, int> TradeCodeDictionary = new();
 
         public MiraiQQBot(QQSettings settings, PokeTradeHub<T> hub)
         {
             Hub = hub;
             Settings = settings;
 
-            client = new MiraiBot
+            Client = new MiraiBot
             {
                 Address = settings.Address,
                 QQ = settings.QQ,
                 VerifyKey = settings.VerifyKey
             };
             GroupId = settings.GroupId;
-            client.MessageReceived.OfType<GroupMessageReceiver>()
+            Client.MessageReceived.OfType<GroupMessageReceiver>()
                 .Subscribe(async receiver =>
                 {
-                    var senderQQ = receiver.Sender.Id;
-                    var groupId = receiver.Sender.Group.Id;
-                    if (groupId != GroupId || senderQQ == client.QQ)
+                    if (IsBotOrNotTargetGroup(receiver))
                         return;
 
-                    if (settings.AliveMsg == receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text)
-                    {
-                        await MessageManager.SendGroupMessageAsync(groupId, settings.AliveMsg);
-                        return;
-                    }
-
-                    if (await HandleFileUpload(receiver))
-                    {
-                        return;
-                    }
-
+                    await HandleAliveMessage(receiver);
+                    await HandleFileUpload(receiver);
                     await HandleCommand(receiver);
+                    await HandlePokemonName(receiver);
+                    await HandleCancel(receiver);
                 });
+
+            Client.MessageReceived.OfType<TempMessageReceiver>()
+                .Subscribe(receiver =>
+                {
+                    var tradeCode = receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text ?? "";
+                    if (Regex.IsMatch(tradeCode, "\\d{8}"))
+                    {
+                        TradeCodeDictionary[receiver.Sender.Id] = int.Parse(tradeCode);
+                    }
+                });
+            Client.EventReceived.OfType<MemberKickedEvent>()
+                .Subscribe(receiver => { Info.ClearTrade(ulong.Parse(receiver.Member.Id)); });
+            Client.EventReceived.OfType<MemberLeftEvent>()
+                .Subscribe(receiver => { Info.ClearTrade(ulong.Parse(receiver.Member.Id)); });
         }
 
         public void StartingDistribution()
         {
             Task.Run(async () =>
             {
-                await client.LaunchAsync();
+                await Client.LaunchAsync();
                 if (!string.IsNullOrWhiteSpace(Settings.MessageStart))
                 {
                     await MessageManager.SendGroupMessageAsync(GroupId, Settings.MessageStart);
@@ -88,87 +98,118 @@ namespace SysBot.Pokemon.QQ
             });
         }
 
-        // todo: revise
-        private async Task<bool> HandleFileUpload(GroupMessageReceiver receiver)
+        private bool IsBotOrNotTargetGroup(GroupMessageReceiver receiver)
+        {
+            return receiver.Sender.Group.Id != GroupId || receiver.Sender.Id == Settings.QQ;
+        }
+
+        private async Task HandleAliveMessage(GroupMessageReceiver receiver)
+        {
+            if (Settings.AliveMsg == receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text)
+            {
+                await MessageManager.SendGroupMessageAsync(receiver.Sender.Group.Id, Settings.AliveMsg);
+                return;
+            }
+        }
+
+        private async Task HandleCancel(GroupMessageReceiver receiver)
+        {
+            if (receiver.MessageChain.OfType<AtMessage>().All(x => x.Target != Settings.QQ)) return;
+            bool isCancelMsg = (receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text ?? "").Trim()
+                .StartsWith("取消");
+            if (!isCancelMsg) return;
+            var result = Info.ClearTrade(ulong.Parse(receiver.Sender.Id));
+            await receiver.SendMessageAsync(GetClearTradeMessage(result));
+        }
+
+        private static string GetClearTradeMessage(QueueResultRemove result)
+        {
+            return result switch
+            {
+                QueueResultRemove.CurrentlyProcessing => "你正在交换中",
+                QueueResultRemove.CurrentlyProcessingRemoved => "正在删除",
+                QueueResultRemove.Removed => "已删除",
+                _ => "你不在队列里",
+            };
+        }
+
+        private async Task HandlePokemonName(GroupMessageReceiver receiver)
+        {
+            if (receiver.MessageChain.OfType<AtMessage>().All(x => x.Target != Settings.QQ)) return;
+            var text = receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text ?? "";
+            if (string.IsNullOrWhiteSpace(text)) return;
+            string ps = ShowdownTranslator.Chinese2Showdown(text);
+            if (string.IsNullOrWhiteSpace(ps)) return;
+            LogUtil.LogInfo($"code\n{ps}", "ps");
+            var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(ps, receiver.Sender.Name,
+                ulong.Parse(receiver.Sender.Id), out string msg);
+
+            await ProcessAddWaitingListResult(_, msg, receiver.Sender.Id);
+        }
+
+        private async Task HandleFileUpload(GroupMessageReceiver receiver)
         {
             var senderQQ = receiver.Sender.Id;
             var groupId = receiver.Sender.Group.Id;
-            var result = false;
 
-            var fileMessages = receiver.MessageChain.OfType<FileMessage>();
+            var fileMessage = receiver.MessageChain.OfType<FileMessage>()?.FirstOrDefault();
+            if (fileMessage == null) return;
+            LogUtil.LogText("In file module");
+            var fileName = fileMessage.Name;
+            string operationType;
+            if (typeof(T) == typeof(PK8) &&
+                fileName.EndsWith(".pk8", StringComparison.OrdinalIgnoreCase)) operationType = "pk8";
+            else if (typeof(T) == typeof(PB8) &&
+                     fileName.EndsWith(".pb8", StringComparison.OrdinalIgnoreCase))
+                operationType = "pb8";
+            else if (typeof(T) == typeof(PA8) &&
+                     fileName.EndsWith(".pa8", StringComparison.OrdinalIgnoreCase))
+                operationType = "pa8";
+            else return;
 
-            if (fileMessages.Any())
+            PKM pkm;
+            try
             {
-                LogUtil.LogText("In file module");
-                var file = fileMessages.First();
-                var fileName = file.Name;
-                string operationType;
-                if (typeof(T) == typeof(PK8) &&
-                    fileName.EndsWith(".pk8", StringComparison.OrdinalIgnoreCase)) operationType = "pk8";
-                else if (typeof(T) == typeof(PB8) &&
-                         fileName.EndsWith(".pb8", StringComparison.OrdinalIgnoreCase))
-                    operationType = "pb8";
-                else if (typeof(T) == typeof(PA8) &&
-                         fileName.EndsWith(".pa8", StringComparison.OrdinalIgnoreCase))
-                    operationType = "pa8";
-                else return result;
+                var f = await FileManager.GetFileAsync(groupId, fileMessage.FileId, true);
 
-                PKM pkm;
-                try
+                string url = f.DownloadInfo.Url;
+                byte[] data = new System.Net.WebClient().DownloadData(url);
+                switch (operationType)
                 {
-                    var f = await FileManager.GetFileAsync(groupId, file.FileId, true);
-
-                    string url = f.DownloadInfo.Url;
-                    byte[] data = new System.Net.WebClient().DownloadData(url);
-                    switch (operationType)
-                    {
-                        case "pk8" or "pb8" when data.Length != 344:
-                            await MessageManager.SendGroupMessageAsync(groupId, "非法文件");
-                            return result;
-                        case "pa8" when data.Length != 376:
-                            await MessageManager.SendGroupMessageAsync(groupId, "非法文件");
-                            return result;
-                    }
-
-                    switch (operationType)
-                    {
-                        case "pk8":
-                            pkm = new PK8(data);
-                            break;
-                        case "pb8":
-                            pkm = new PB8(data);
-                            break;
-                        case "pa8":
-                            pkm = new PA8(data);
-                            break;
-                        default: return result;
-                    }
-
-                    LogUtil.LogText($"operationType:{operationType}");
-                    await FileManager.DeleteFileAsync(groupId, file.FileId);
-                }
-                catch (Exception ex)
-                {
-                    LogUtil.LogText(ex.ToString());
-                    return result;
+                    case "pk8" or "pb8" when data.Length != 344:
+                        await MessageManager.SendGroupMessageAsync(groupId, "非法文件");
+                        return;
+                    case "pa8" when data.Length != 376:
+                        await MessageManager.SendGroupMessageAsync(groupId, "非法文件");
+                        return;
                 }
 
-                //MessageManager.SendGroupMessageAsync(groupId, receiver.Sender.Name + " 上传了 " + fileName + " 文件");
-                var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(pkm, receiver.Sender.Name,
-                    ulong.Parse(senderQQ), out string msg);
-                if (_)
+                switch (operationType)
                 {
-                    await GetUserFromQueueAndGenerateCodeToTrade(senderQQ);
-                    return true;
+                    case "pk8":
+                        pkm = new PK8(data);
+                        break;
+                    case "pb8":
+                        pkm = new PB8(data);
+                        break;
+                    case "pa8":
+                        pkm = new PA8(data);
+                        break;
+                    default: return;
                 }
-                else
-                {
-                    await MessageManager.SendGroupMessageAsync(groupId, new AtMessage(senderQQ).Append(" 宝可梦信息异常"));
-                    return false;
-                }
+
+                LogUtil.LogText($"operationType:{operationType}");
+                await FileManager.DeleteFileAsync(groupId, fileMessage.FileId);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogText(ex.ToString());
+                return;
             }
 
-            return false;
+            var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(pkm, receiver.Sender.Name,
+                ulong.Parse(senderQQ), out string msg);
+            await ProcessAddWaitingListResult(_, msg, senderQQ);
         }
 
         private async Task HandleCommand(GroupMessageReceiver receiver)
@@ -198,17 +239,29 @@ namespace SysBot.Pokemon.QQ
             switch (c)
             {
                 case "$trade":
-                    var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(args, nickName, ulong.Parse(qq), out string msg);
-                    if (_)
+                    try
                     {
-                        await GetUserFromQueueAndGenerateCodeToTrade(qq);
+                        await receiver.RecallAsync();
                     }
-                    else
+                    catch (Exception)
                     {
-                        await MessageManager.SendGroupMessageAsync(GroupId, new AtMessage(qq).Append(" 宝可梦信息异常"));
+                        LogUtil.LogError("recall failed", "mirai");
                     }
 
+                    var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(args, nickName, ulong.Parse(qq), out string msg);
+                    await ProcessAddWaitingListResult(_, msg, qq);
                     break;
+            }
+        }
+
+        private async Task ProcessAddWaitingListResult(bool success, string msg, string qq)
+        {
+            if (success)
+                await GetUserFromQueueAndGenerateCodeToTrade(qq);
+            else
+            {
+                LogUtil.LogError(msg, "trade");
+                await MessageManager.SendGroupMessageAsync(GroupId, new AtMessage(qq).Append(" 宝可梦信息异常"));
             }
         }
 
@@ -216,15 +269,15 @@ namespace SysBot.Pokemon.QQ
         {
             var user = QueuePool.FindLast(q => q.QQ == ulong.Parse(qq));
 
-            //LogUtil.LogInfo("QueuePool.ToString" + QueuePool.ToString(), "debug");
             if (user == null)
                 return;
             QueuePool.Remove(user);
 
-            Random rnd = new();
             try
             {
-                int code = rnd.Next(0, 9999_9999); //Util.ToInt32(msg);
+                int code = TradeCodeDictionary.ContainsKey(qq)
+                    ? TradeCodeDictionary[qq]
+                    : Info.GetRandomTradeCode(); //Util.ToInt32(msg);
                 var _ = AddToTradeQueue(user.Pokemon, code, user.QQ, user.DisplayName, RequestSignificance.Favored,
                     PokeRoutineType.LinkTrade, out string message);
                 if (!_)

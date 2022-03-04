@@ -276,6 +276,7 @@ namespace SysBot.Pokemon
 
             var tradePartner = await GetTradePartnerInfo(token).ConfigureAwait(false);
             var trainerNID = await GetTradePartnerNID(TradePartnerNIDOffset, token).ConfigureAwait(false);
+            tradePartner.NID = trainerNID;
             RecordUtil<PokeTradeBot>.Record($"Initiating\t{trainerNID:X16}\t{tradePartner.TrainerName}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
             Log($"Found Link Trade partner: {tradePartner.TrainerName}-{tradePartner.TID7} (ID: {trainerNID})");
 
@@ -324,9 +325,14 @@ namespace SysBot.Pokemon
                 return update;
             }
 
+            if (Hub.Config.QQ.RandomEC)
+            {
+                toSend.SetRandomEC();
+            }
+
             if (Hub.Config.QQ.UseTradePartnerInfo)
             {
-                await SetBoxPkmWithSwappedIDDetailsPLA(toSend, offered, sav, token);
+                await SetBoxPkmWithSwappedIDDetailsPLA(toSend, tradePartner, sav, token);
             }
 
             Log("Confirming trade.");
@@ -554,7 +560,10 @@ namespace SysBot.Pokemon
         {
             var id = await SwitchConnection.PointerPeek(4, Offsets.LinkTradePartnerTIDPointer, token).ConfigureAwait(false);
             var name = await SwitchConnection.PointerPeek(TradePartnerLA.MaxByteLengthStringObject, Offsets.LinkTradePartnerNamePointer, token).ConfigureAwait(false);
-            return new TradePartnerLA(id, name);
+            var traderOffset = await SwitchConnection.PointerAll(Offsets.LinkTradePartnerTIDPointer, token).ConfigureAwait(false);
+            var idbytes = await SwitchConnection.ReadBytesAbsoluteAsync(traderOffset + 0x04, 4, token).ConfigureAwait(false);
+
+            return new TradePartnerLA(id, name, idbytes);
         }
 
         protected virtual async Task<(PA8 toSend, PokeTradeResult check)> GetEntityToSend(SAV8LA sav, PokeTradeDetail<PA8> poke, PA8 offered, PA8 toSend, PartnerDataHolder partnerID, CancellationToken token)
@@ -798,14 +807,15 @@ namespace SysBot.Pokemon
         };
 
         // based on https://github.com/Muchacho13Scripts/SysBot.NET/commit/f7879386f33bcdbd95c7a56e7add897273867106
-        private async Task<bool> SetBoxPkmWithSwappedIDDetailsPLA(PA8 toSend, PA8 offered, SAV8LA sav, CancellationToken token)
+        // and https://github.com/berichan/SysBot.PLA/commit/84042d4716007dc6ff3100ad4be4a483d622ccf8
+        private async Task<bool> SetBoxPkmWithSwappedIDDetailsPLA(PA8 toSend, TradePartnerLA tradePartner, SAV8LA sav, CancellationToken token)
         {
             var cln = (PA8)toSend.Clone();
-            cln.OT_Gender = offered.OT_Gender;
-            cln.TrainerID7 = offered.TrainerID7;
-            cln.TrainerSID7 = offered.TrainerSID7;
-            cln.Language = offered.Language;
-            cln.OT_Name = offered.OT_Name;
+            cln.OT_Gender = tradePartner.Gender;
+            cln.TrainerID7 = int.Parse(tradePartner.TID7);
+            cln.TrainerSID7 = int.Parse(tradePartner.SID7);
+            cln.Language = tradePartner.Language;
+            cln.OT_Name = tradePartner.TrainerName;
             cln.ClearNickname();
 
             if (toSend.IsShiny)

@@ -63,7 +63,10 @@ namespace SysBot.Pokemon.QQ
                 $"@{info.Trainer.TrainerName} (ID: {info.ID}): Initializing trade{receive} with you. Please be ready.";
             msg += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(msg);
-            SendMessage(new AtMessage($"{info.Trainer.ID}").Append($" 准备交换\n连接密码:{info.Code:0000 0000}\n我的名字:{routine.InGameName}"));
+            SendMessage(MiraiQQBot<T>.TradeCodeDictionary.ContainsKey(info.Trainer.ID.ToString())
+                ? new AtMessage($"{info.Trainer.ID}").Append($" 准备交换\n连接密码是你私信我的\n我的名字:{routine.InGameName}")
+                : new AtMessage($"{info.Trainer.ID}").Append(
+                    $" 准备交换\n连接密码:{info.Code:0000 0000}\n我的名字:{routine.InGameName}"));
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)

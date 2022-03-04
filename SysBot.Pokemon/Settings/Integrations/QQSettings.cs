@@ -35,5 +35,8 @@ namespace SysBot.Pokemon
 
         [Category(Operation), Description("Use TradePartnerInfo")]
         public bool UseTradePartnerInfo { get; set; } = false;
+
+        [Category(Operation), Description("Random EC")]
+        public bool RandomEC { get; set; } = false;
     }
 }

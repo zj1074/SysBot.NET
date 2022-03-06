@@ -62,7 +62,6 @@ namespace SysBot.Pokemon.ConsoleApp
             if (QQ != null) return;
             //add qq bot
             QQ = new MiraiQQBot<T>(config, Hub);
-            QQ.StartingDistribution();
         }
     }
 }

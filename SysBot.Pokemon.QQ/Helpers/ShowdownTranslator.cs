@@ -5,26 +5,27 @@ namespace SysBot.Pokemon.QQ
 {
     public class ShowdownTranslator
     {
+        public static GameStrings GameStrings = GameInfo.GetStrings("zh");
+        public static GameStrings GameStringsEn = GameInfo.GetStrings("en");
         public static string Chinese2Showdown(string zh)
         {
             string result = "";
-            var gameStrings = GameInfo.GetStrings("zh");
-            var gameStringsEn = GameInfo.GetStrings("en");
+            
             int candidateSpecieNo = 0;
             int candidateSpecieStringLength = 0;
-            for (int i = 0; i < gameStrings.Species.Count; i++)
+            for (int i = 0; i < GameStrings.Species.Count; i++)
             {
-                if (zh.Contains(gameStrings.Species[i]) && gameStrings.Species[i].Length > candidateSpecieStringLength)
+                if (zh.Contains(GameStrings.Species[i]) && GameStrings.Species[i].Length > candidateSpecieStringLength)
                 {
                     candidateSpecieNo = i;
-                    candidateSpecieStringLength = gameStrings.Species[i].Length;
+                    candidateSpecieStringLength = GameStrings.Species[i].Length;
                 }
             }
 
             if (candidateSpecieNo > 0)
             {
-                result += gameStringsEn.Species[candidateSpecieNo];
-                zh = zh.Replace(gameStrings.Species[candidateSpecieNo], "");
+                result += GameStringsEn.Species[candidateSpecieNo];
+                zh = zh.Replace(GameStrings.Species[candidateSpecieNo], "");
             }
             else
             {
@@ -38,12 +39,12 @@ namespace SysBot.Pokemon.QQ
                 zh = Regex.Replace(zh, "[A-Z?!？！]形态", "");
             }
 
-            for (int i = 0; i < gameStrings.forms.Length; i++)
+            for (int i = 0; i < GameStrings.forms.Length; i++)
             {
-                if (gameStrings.forms[i].Length == 0) continue;
-                if (!zh.Contains(gameStrings.forms[i] + "形态")) continue;
-                result += $"-{gameStringsEn.forms[i]}";
-                zh = zh.Replace(gameStrings.forms[i] + "形态", "");
+                if (GameStrings.forms[i].Length == 0) continue;
+                if (!zh.Contains(GameStrings.forms[i] + "形态")) continue;
+                result += $"-{GameStringsEn.forms[i]}";
+                zh = zh.Replace(GameStrings.forms[i] + "形态", "");
                 break;
             }
 
@@ -77,12 +78,12 @@ namespace SysBot.Pokemon.QQ
                 zh = zh.Replace("头目", "");
             }
 
-            for (int i = 0; i < gameStrings.Natures.Count; i++)
+            for (int i = 0; i < GameStrings.Natures.Count; i++)
             {
-                if (zh.Contains(gameStrings.Natures[i]))
+                if (zh.Contains(GameStrings.Natures[i]))
                 {
-                    result += $"\n{gameStringsEn.Natures[i]} Nature";
-                    zh = zh.Replace(gameStrings.Natures[i], "");
+                    result += $"\n{GameStringsEn.Natures[i]} Nature";
+                    zh = zh.Replace(GameStrings.Natures[i], "");
                     break;
                 }
             }

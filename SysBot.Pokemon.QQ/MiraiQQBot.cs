@@ -2,7 +2,6 @@
 using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Sessions;
 using Mirai.Net.Sessions.Http.Managers;
-using Newtonsoft.Json;
 using PKHeX.Core;
 using SysBot.Base;
 using System;
@@ -26,7 +25,9 @@ namespace SysBot.Pokemon.QQ
         internal static readonly List<MiraiQQQueue<T>> QueuePool = new();
         private readonly MiraiBot Client;
         private readonly string GroupId;
+
         private readonly QQSettings Settings;
+
         // concurrent?
         internal static ConcurrentDictionary<string, int> TradeCodeDictionary = new();
 
@@ -53,6 +54,7 @@ namespace SysBot.Pokemon.QQ
                     await HandleCommand(receiver);
                     await HandlePokemonName(receiver);
                     await HandleCancel(receiver);
+                    await HandlePosition(receiver);
                 });
 
             Client.MessageReceived.OfType<TempMessageReceiver>()
@@ -68,34 +70,46 @@ namespace SysBot.Pokemon.QQ
                 .Subscribe(receiver => { Info.ClearTrade(ulong.Parse(receiver.Member.Id)); });
             Client.EventReceived.OfType<MemberLeftEvent>()
                 .Subscribe(receiver => { Info.ClearTrade(ulong.Parse(receiver.Member.Id)); });
-        }
 
-        public void StartingDistribution()
-        {
             Task.Run(async () =>
             {
-                await Client.LaunchAsync();
-                if (!string.IsNullOrWhiteSpace(Settings.MessageStart))
+                try
                 {
-                    await MessageManager.SendGroupMessageAsync(GroupId, Settings.MessageStart);
+                    await Client.LaunchAsync();
+
+                    if (!string.IsNullOrWhiteSpace(Settings.MessageStart))
+                    {
+                        await MessageManager.SendGroupMessageAsync(GroupId, Settings.MessageStart);
+                        await Task.Delay(1_000).ConfigureAwait(false);
+                    }
+
+                    if (typeof(T) == typeof(PK8))
+                    {
+                        await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为剑盾");
+                    }
+                    else if (typeof(T) == typeof(PB8))
+                    {
+                        await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为晶灿钻石明亮珍珠");
+                    }
+                    else if (typeof(T) == typeof(PA8))
+                    {
+                        await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为阿尔宙斯");
+                    }
+
                     await Task.Delay(1_000).ConfigureAwait(false);
                 }
-
-                if (typeof(T) == typeof(PK8))
+#pragma warning disable CA1031 // Do not catch general exception types
+                catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
-                    await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为剑盾");
+                    LogUtil.LogError(ex.Message, nameof(MiraiQQBot<T>));
                 }
-                else if (typeof(T) == typeof(PB8))
-                {
-                    await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为晶灿钻石明亮珍珠");
-                }
-                else if (typeof(T) == typeof(PA8))
-                {
-                    await MessageManager.SendGroupMessageAsync(GroupId, "当前版本为阿尔宙斯");
-                }
-
-                await Task.Delay(1_000).ConfigureAwait(false);
             });
+        }
+
+        void Dispose()
+        {
+            Client.Dispose();
         }
 
         private bool IsBotOrNotTargetGroup(GroupMessageReceiver receiver)
@@ -119,7 +133,30 @@ namespace SysBot.Pokemon.QQ
                 .StartsWith("取消");
             if (!isCancelMsg) return;
             var result = Info.ClearTrade(ulong.Parse(receiver.Sender.Id));
-            await receiver.SendMessageAsync(GetClearTradeMessage(result));
+            await receiver.SendMessageAsync(
+                new AtMessage(receiver.Sender.Id).Append($" {GetClearTradeMessage(result)}"));
+        }
+
+        private async Task HandlePosition(GroupMessageReceiver receiver)
+        {
+            if (receiver.MessageChain.OfType<AtMessage>().All(x => x.Target != Settings.QQ)) return;
+            bool isPositionMsg = (receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text ?? "").Trim()
+                .StartsWith("位置");
+            if (!isPositionMsg) return;
+            var result = Info.CheckPosition(ulong.Parse(receiver.Sender.Id));
+            await receiver.SendMessageAsync(
+                new AtMessage(receiver.Sender.Id).Append($" {GetQueueCheckResultMessage(result)}"));
+        }
+
+        public string GetQueueCheckResultMessage(QueueCheckResult<T> result)
+        {
+            if (!result.InQueue || result.Detail is null)
+                return "你不在队列里";
+            var msg = $"你在第{result.Position}位";
+            var pk = result.Detail.Trade.TradeData;
+            if (pk.Species != 0)
+                msg += $"，交换宝可梦：{ShowdownTranslator.GameStrings.Species[result.Detail.Trade.TradeData.Species]}";
+            return msg;
         }
 
         private static string GetClearTradeMessage(QueueResultRemove result)
@@ -140,7 +177,7 @@ namespace SysBot.Pokemon.QQ
             if (string.IsNullOrWhiteSpace(text)) return;
             string ps = ShowdownTranslator.Chinese2Showdown(text);
             if (string.IsNullOrWhiteSpace(ps)) return;
-            LogUtil.LogInfo($"code\n{ps}", "ps");
+            LogUtil.LogInfo($"code\n{ps}", "HandlePokemonName");
             var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(ps, receiver.Sender.Name,
                 ulong.Parse(receiver.Sender.Id), out string msg);
 
@@ -154,7 +191,7 @@ namespace SysBot.Pokemon.QQ
 
             var fileMessage = receiver.MessageChain.OfType<FileMessage>()?.FirstOrDefault();
             if (fileMessage == null) return;
-            LogUtil.LogText("In file module");
+            LogUtil.LogInfo("In file module", "HandleFileUpload");
             var fileName = fileMessage.Name;
             string operationType;
             if (typeof(T) == typeof(PK8) &&
@@ -198,12 +235,13 @@ namespace SysBot.Pokemon.QQ
                     default: return;
                 }
 
-                LogUtil.LogText($"operationType:{operationType}");
+                LogUtil.LogInfo($"operationType:{operationType}", "HandleFileUpload");
                 await FileManager.DeleteFileAsync(groupId, fileMessage.FileId);
             }
             catch (Exception ex)
             {
-                LogUtil.LogText(ex.ToString());
+                LogUtil.LogSafe(ex, "HandleFileUpload");
+                LogUtil.LogError(ex.Message, "HandleFileUpload");
                 return;
             }
 
@@ -224,7 +262,7 @@ namespace SysBot.Pokemon.QQ
                 return;
             }
 
-            LogUtil.LogText($"debug qqMsg:{qqMsg}");
+            LogUtil.LogInfo($"qqMsg:{qqMsg}", "HandleCommand");
             var split = qqMsg.Split('\n');
             string c = "";
             string args = "";
@@ -243,9 +281,10 @@ namespace SysBot.Pokemon.QQ
                     {
                         await receiver.RecallAsync();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        LogUtil.LogError("recall failed", "mirai");
+                        LogUtil.LogSafe(ex, "mirai");
+                        LogUtil.LogError($"{ex.Message}", "mirai");
                     }
 
                     var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(args, nickName, ulong.Parse(qq), out string msg);
@@ -257,7 +296,10 @@ namespace SysBot.Pokemon.QQ
         private async Task ProcessAddWaitingListResult(bool success, string msg, string qq)
         {
             if (success)
+            {
+                LogUtil.LogInfo(msg, "trade");
                 await GetUserFromQueueAndGenerateCodeToTrade(qq);
+            }
             else
             {
                 LogUtil.LogError(msg, "trade");

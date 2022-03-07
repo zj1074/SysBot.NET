@@ -46,15 +46,23 @@ namespace SysBot.Pokemon.QQ
             Client.MessageReceived.OfType<GroupMessageReceiver>()
                 .Subscribe(async receiver =>
                 {
-                    if (IsBotOrNotTargetGroup(receiver))
-                        return;
+                    try
+                    {
+                        if (IsBotOrNotTargetGroup(receiver))
+                            return;
 
-                    await HandleAliveMessage(receiver);
-                    await HandleFileUpload(receiver);
-                    await HandleCommand(receiver);
-                    await HandlePokemonName(receiver);
-                    await HandleCancel(receiver);
-                    await HandlePosition(receiver);
+                        await HandleAliveMessage(receiver);
+                        await HandleFileUpload(receiver);
+                        await HandleCommand(receiver);
+                        await HandlePokemonName(receiver);
+                        await HandleCancel(receiver);
+                        await HandlePosition(receiver);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogUtil.LogSafe(ex, "MiraiMain");
+                        LogUtil.LogError(ex.Message, "MiraiMain");
+                    }
                 });
 
             Client.MessageReceived.OfType<TempMessageReceiver>()
@@ -105,11 +113,6 @@ namespace SysBot.Pokemon.QQ
                     LogUtil.LogError(ex.Message, nameof(MiraiQQBot<T>));
                 }
             });
-        }
-
-        void Dispose()
-        {
-            Client.Dispose();
         }
 
         private bool IsBotOrNotTargetGroup(GroupMessageReceiver receiver)
@@ -261,6 +264,8 @@ namespace SysBot.Pokemon.QQ
             {
                 return;
             }
+
+            if (string.IsNullOrWhiteSpace(qqMsg) || !qqMsg.Trim().StartsWith("$trade")) return;
 
             LogUtil.LogInfo($"qqMsg:{qqMsg}", "HandleCommand");
             var split = qqMsg.Split('\n');

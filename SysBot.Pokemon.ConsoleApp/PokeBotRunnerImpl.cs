@@ -3,6 +3,7 @@ using SysBot.Pokemon.Discord;
 using SysBot.Pokemon.Twitch;
 using System.Threading;
 using System.Threading.Tasks;
+using SysBot.Pokemon.Bilibili;
 using SysBot.Pokemon.QQ;
 
 namespace SysBot.Pokemon.ConsoleApp
@@ -17,6 +18,7 @@ namespace SysBot.Pokemon.ConsoleApp
 
         private static TwitchBot<T>? Twitch;
         private MiraiQQBot<T>? QQ;
+        private BilibiliLiveBot<T>? Bilibili;
 
         protected override void AddIntegrations()
         {
@@ -24,6 +26,7 @@ namespace SysBot.Pokemon.ConsoleApp
             AddTwitchBot(Hub.Config.Twitch);
             //add qq bot
             AddQQBot(Hub.Config.QQ);
+            AddBilibiliBot(Hub.Config.Bilibili);
         }
 
         private void AddTwitchBot(TwitchSettings config)
@@ -62,6 +65,13 @@ namespace SysBot.Pokemon.ConsoleApp
             if (QQ != null) return;
             //add qq bot
             QQ = new MiraiQQBot<T>(config, Hub);
+        }
+
+        private void AddBilibiliBot(BilibiliSettings config)
+        {
+            if (string.IsNullOrWhiteSpace(config.LogUrl) || config.RoomId == 0) return;
+            if (Bilibili != null) return;
+            Bilibili = new BilibiliLiveBot<T>(config, Hub);
         }
     }
 }

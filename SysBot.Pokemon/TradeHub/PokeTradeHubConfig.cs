@@ -89,5 +89,9 @@ namespace SysBot.Pokemon
         [Category(Integration)]
         [TypeConverter(typeof(ExpandableObjectConverter))]
         public QQSettings QQ { get; set; } = new();
+
+        [Category(Integration)]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        public BilibiliSettings Bilibili { get; set; } = new();
     }
 }

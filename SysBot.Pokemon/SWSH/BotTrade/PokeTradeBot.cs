@@ -325,6 +325,11 @@ namespace SysBot.Pokemon
                 return PokeTradeResult.RecoverOpenBox;
             }
 
+            if (Hub.Config.QQ.UseTradePartnerInfo)
+            {
+                await SetPkmWithSwappedIDDetails(toSend, trainerName, sav, token);
+            }
+
             // Confirm Box 1 Slot 1
             if (poke.Type == PokeTradeType.Specific)
             {
@@ -387,6 +392,37 @@ namespace SysBot.Pokemon
             // Only log if we completed the trade.
             UpdateCountsAndExport(poke, received, toSend);
             return PokeTradeResult.Success;
+        }
+
+        private async Task<bool> SetPkmWithSwappedIDDetails(PK8 toSend, string trainerName, SAV8SWSH sav, CancellationToken token)
+        {
+            var data = await Connection.ReadBytesAsync(LinkTradePartnerNameOffset - 0x8, 8, token).ConfigureAwait(false);
+            var tidsid = BitConverter.ToInt32(data, 0);
+            var cln = (PK8)toSend.Clone();
+            cln.OT_Gender = data[6];
+            cln.TrainerID7 = tidsid % 1_000_000;
+            cln.TrainerSID7 = tidsid / 1_000_000;
+            cln.Language = data[5];
+            cln.OT_Name = trainerName;
+            cln.ClearNickname();
+
+            if (toSend.IsShiny)
+                cln.SetShiny();
+
+            cln.RefreshChecksum();
+
+            var tradeswsh = new LegalityAnalysis(cln);
+            if (tradeswsh.Valid)
+            {
+                Log($"Pokemon is valid, use trade partnerInfo");
+                await SetBoxPokemon(cln, InjectBox, InjectSlot, token, sav).ConfigureAwait(false);
+            }
+            else
+            {
+                Log($"Pokemon not valid, do nothing to trade Pokemon");
+            }
+
+            return tradeswsh.Valid;
         }
 
         private async Task<PokeTradeResult> CheckPartnerReputation(PokeTradeDetail<PK8> poke, ulong TrainerNID, string TrainerName, CancellationToken token)

@@ -29,11 +29,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SysBot.Pokemon.YouTube", "S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SysBot.Pokemon.QQ", "SysBot.Pokemon.QQ\SysBot.Pokemon.QQ.csproj", "{2CD212D9-FF32-4434-9E19-D9CCB99E6817}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SysBot.Pokemon.Bilibili", "SysBot.Pokemon.Bilibili\SysBot.Pokemon.Bilibili.csproj", "{310FFBCD-05DA-4CA3-B785-08B2158ABEBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SysBot.Pokemon.Bilibili", "SysBot.Pokemon.Bilibili\SysBot.Pokemon.Bilibili.csproj", "{310FFBCD-05DA-4CA3-B785-08B2158ABEBC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2B520A84-74AF-40EC-9B10-A9FCF950D02E} = {2B520A84-74AF-40EC-9B10-A9FCF950D02E}
 		{850BECFD-3789-4C07-885E-0AA108C46F60} = {850BECFD-3789-4C07-885E-0AA108C46F60}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SysBot.Pokemon.Dodo", "SysBot.Pokemon.Dodo\SysBot.Pokemon.Dodo.csproj", "{BE43311D-4571-466E-B3CB-3FD658EFC159}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -176,6 +178,18 @@ Global
 		{310FFBCD-05DA-4CA3-B785-08B2158ABEBC}.Release|x64.Build.0 = Release|Any CPU
 		{310FFBCD-05DA-4CA3-B785-08B2158ABEBC}.Release|x86.ActiveCfg = Release|Any CPU
 		{310FFBCD-05DA-4CA3-B785-08B2158ABEBC}.Release|x86.Build.0 = Release|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Debug|x64.Build.0 = Debug|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Debug|x86.Build.0 = Debug|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Release|x64.ActiveCfg = Release|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Release|x64.Build.0 = Release|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Release|x86.ActiveCfg = Release|Any CPU
+		{BE43311D-4571-466E-B3CB-3FD658EFC159}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

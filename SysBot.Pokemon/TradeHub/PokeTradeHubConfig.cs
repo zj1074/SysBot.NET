@@ -93,5 +93,9 @@ namespace SysBot.Pokemon
         [Category(Integration)]
         [TypeConverter(typeof(ExpandableObjectConverter))]
         public BilibiliSettings Bilibili { get; set; } = new();
+
+        [Category(Integration)]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        public DodoSettings Dodo { get; set; } = new();
     }
 }

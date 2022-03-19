@@ -2,6 +2,7 @@
 using DoDo.Open.Sdk.Models;
 using DoDo.Open.Sdk.Models.Channels;
 using DoDo.Open.Sdk.Models.Messages;
+using DoDo.Open.Sdk.Models.Personals;
 using DoDo.Open.Sdk.Services;
 using PKHeX.Core;
 
@@ -26,7 +27,7 @@ namespace SysBot.Pokemon.Dodo
                 Token = settings.Token
             });
             //事件处理服务，可自定义，只要继承EventProcessService抽象类即可
-            var eventProcessService = new PokemonProcessService<T>(OpenApiService);
+            var eventProcessService = new PokemonProcessService<T>(OpenApiService, settings.ChannelId);
             //开放事件服务
             var openEventService = new OpenEventService(OpenApiService, eventProcessService, new OpenEventOptions
             {
@@ -59,6 +60,19 @@ namespace SysBot.Pokemon.Dodo
                 MessageBody = new MessageBodyText
                 {
                     Content = $"<@!{atDodoId}> {message}"
+                }
+            });
+        }
+
+        public static void SendPersonalMessage(string dodoId, string message)
+        {
+            if (string.IsNullOrEmpty(message)) return;
+            OpenApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyText>
+            {
+                DoDoId = dodoId,
+                MessageBody = new MessageBodyText
+                {
+                    Content = message
                 }
             });
         }

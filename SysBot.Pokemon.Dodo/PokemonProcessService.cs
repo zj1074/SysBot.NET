@@ -24,18 +24,21 @@ namespace SysBot.Pokemon.Dodo
     public class PokemonProcessService<TP> : EventProcessService where TP : PKM, new()
     {
         private readonly OpenApiService _openApiService;
-        private static string LogIdentity = "DodoBot";
-        private static string BotDodoId = "0";
-        private static string Welcome = "at我并尝试对我说：\n头目异色怕寂寞性格98级母怪力\n六尾阿罗拉的样子形态\n未知图腾Y形态";
+        private static readonly string LogIdentity = "DodoBot";
+        private static readonly string Welcome = "at我并尝试对我说：\n头目异色怕寂寞性格98级母怪力\n六尾阿罗拉的样子形态\n未知图腾Y形态";
+        private readonly string _channelId;
+        private readonly string _botDodoId;
 
-        public PokemonProcessService(OpenApiService openApiService)
+        public PokemonProcessService(OpenApiService openApiService, string channelId)
         {
             _openApiService = openApiService;
             var output = _openApiService.GetBotInfo(new GetBotInfoInput());
             if (output != null)
             {
-                BotDodoId = output.DodoId;
+                _botDodoId = output.DodoId;
             }
+
+            _channelId = channelId;
         }
 
         public override void Connected(string message)
@@ -65,59 +68,13 @@ namespace SysBot.Pokemon.Dodo
 
             if (eventBody.MessageBody is MessageBodyText messageBodyText)
             {
-                var messageBody = messageBodyText;
-
                 _openApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyText>
                 {
                     DoDoId = eventBody.DodoId,
                     MessageBody = new MessageBodyText
                     {
-                        Content = "触发个人消息事件-文本"
+                        Content = "你好"
                     }
-                });
-
-                _openApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyText>
-                {
-                    DoDoId = eventBody.DodoId,
-                    MessageBody = messageBody
-                });
-            }
-            else if (eventBody.MessageBody is MessageBodyPicture messageBodyPicture)
-            {
-                var messageBody = messageBodyPicture;
-
-                _openApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyText>
-                {
-                    DoDoId = eventBody.DodoId,
-                    MessageBody = new MessageBodyText
-                    {
-                        Content = "触发个人消息事件-图片"
-                    }
-                });
-
-                _openApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyPicture>
-                {
-                    DoDoId = eventBody.DodoId,
-                    MessageBody = messageBody
-                });
-            }
-            else if (eventBody.MessageBody is MessageBodyVideo messageBodyVideo)
-            {
-                var messageBody = messageBodyVideo;
-
-                _openApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyText>
-                {
-                    DoDoId = eventBody.DodoId,
-                    MessageBody = new MessageBodyText
-                    {
-                        Content = "触发个人消息事件-视频"
-                    }
-                });
-
-                _openApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyVideo>
-                {
-                    DoDoId = eventBody.DodoId,
-                    MessageBody = messageBody
                 });
             }
         }
@@ -126,40 +83,38 @@ namespace SysBot.Pokemon.Dodo
             EventSubjectOutput<EventSubjectDataBusiness<EventBodyChannelMessage<T>>> input)
         {
             var eventBody = input.Data.EventBody;
+            if (!string.IsNullOrWhiteSpace(_channelId) && eventBody.ChannelId != _channelId) return;
 
-            if (eventBody.MessageBody is MessageBodyText messageBodyText)
+            if (eventBody.MessageBody is not MessageBodyText messageBodyText) return;
+
+            var content = messageBodyText.Content;
+
+            Console.WriteLine($"\n【{content}】");
+            LogUtil.LogInfo($"{eventBody.Personal.NickName}({eventBody.DodoId}):{content}", LogIdentity);
+            if (!content.Contains($"<@!{_botDodoId}>")) return;
+            //DodoBot<TP>.SendChannelMessage($"{eventBody.DodoId} {eventBody.Personal.NickName}", eventBody.ChannelId);
+            var ps = ShowdownTranslator.Chinese2Showdown(content);
+            if (!string.IsNullOrWhiteSpace(ps))
             {
-                var messageBody = messageBodyText;
-
-                var content = messageBody.Content;
-
-                Console.WriteLine($"\n【{content}】");
-                LogUtil.LogInfo($"{eventBody.Personal.NickName}({eventBody.DodoId}):{content}", LogIdentity);
-                if (!content.Contains($"<@!{BotDodoId}>")) return;
-                //DodoBot<TP>.SendChannelMessage($"{eventBody.DodoId} {eventBody.Personal.NickName}", eventBody.ChannelId);
-                var ps = ShowdownTranslator.Chinese2Showdown(content);
-                if (!string.IsNullOrWhiteSpace(ps))
-                {
-                    LogUtil.LogInfo($"收到命令\n{ps}", LogIdentity);
-                    DodoHelper<TP>.dummy(ps, eventBody.DodoId, eventBody.Personal.NickName, eventBody.ChannelId);
-                }
-                else if (content.Contains("取消"))
-                {
-                    var result = DodoBot<TP>.Info.ClearTrade(ulong.Parse(eventBody.DodoId));
-                    DodoBot<TP>.SendChannelAtMessage(ulong.Parse(eventBody.DodoId), $" {GetClearTradeMessage(result)}",
-                        eventBody.ChannelId);
-                }
-                else if (content.Contains("位置"))
-                {
-                    var result = DodoBot<TP>.Info.CheckPosition(ulong.Parse(eventBody.DodoId));
-                    DodoBot<TP>.SendChannelAtMessage(ulong.Parse(eventBody.DodoId),
-                        $" {GetQueueCheckResultMessage(result)}",
-                        eventBody.ChannelId);
-                }
-                else
-                {
-                    DodoBot<TP>.SendChannelMessage($"{Welcome}", eventBody.ChannelId);
-                }
+                LogUtil.LogInfo($"收到命令\n{ps}", LogIdentity);
+                DodoHelper<TP>.StartTrade(ps, eventBody.DodoId, eventBody.Personal.NickName, eventBody.ChannelId);
+            }
+            else if (content.Contains("取消"))
+            {
+                var result = DodoBot<TP>.Info.ClearTrade(ulong.Parse(eventBody.DodoId));
+                DodoBot<TP>.SendChannelAtMessage(ulong.Parse(eventBody.DodoId), $" {GetClearTradeMessage(result)}",
+                    eventBody.ChannelId);
+            }
+            else if (content.Contains("位置"))
+            {
+                var result = DodoBot<TP>.Info.CheckPosition(ulong.Parse(eventBody.DodoId));
+                DodoBot<TP>.SendChannelAtMessage(ulong.Parse(eventBody.DodoId),
+                    $" {GetQueueCheckResultMessage(result)}",
+                    eventBody.ChannelId);
+            }
+            else
+            {
+                DodoBot<TP>.SendChannelMessage($"{Welcome}", eventBody.ChannelId);
             }
         }
 
@@ -188,33 +143,7 @@ namespace SysBot.Pokemon.Dodo
         public override void MessageReactionEvent(
             EventSubjectOutput<EventSubjectDataBusiness<EventBodyMessageReaction>> input)
         {
-            var eventBody = input.Data.EventBody;
-
-            _openApiService.SetChannelMessageSend(new SetChannelMessageSendInput<MessageBodyText>
-            {
-                ChannelId = eventBody.ChannelId,
-                MessageBody = new MessageBodyText
-                {
-                    Content = "触发消息反应事件"
-                }
-            });
-
-            var reply = "";
-
-            reply += $"反应对象类型：{eventBody.ReactionTarget.Type}\n";
-            reply += $"反应对象ID：{eventBody.ReactionTarget.Id}\n";
-            reply += $"反应表情类型：{eventBody.ReactionEmoji.Type}\n";
-            reply += $"反应表情ID：{eventBody.ReactionEmoji.Id}\n";
-            reply += $"反应类型：{eventBody.ReactionType}\n";
-
-            _openApiService.SetChannelMessageSend(new SetChannelMessageSendInput<MessageBodyText>
-            {
-                ChannelId = eventBody.ChannelId,
-                MessageBody = new MessageBodyText
-                {
-                    Content = reply
-                }
-            });
+            // Do nothing
         }
     }
 }

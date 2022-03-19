@@ -10,7 +10,7 @@ namespace SysBot.Pokemon.Dodo
 {
     public class DodoHelper<T> where T : PKM, new()
     {
-        public static void dummy(string ps, string dodoId, string nickName, string channelId)
+        public static void StartTrade(string ps, string dodoId, string nickName, string channelId)
         {
             var _ = CheckAndGetPkm(ps, dodoId, out var msg, out var pkm);
             if (!_)
@@ -84,9 +84,9 @@ namespace SysBot.Pokemon.Dodo
                 }
 
                 var reason = result == "Timeout"
-                    ? "Set took too long to generate."
-                    : "Unable to legalize the Pokemon.";
-                msg = $"Skipping trade, @{username}: {reason}";
+                    ? "宝可梦创造超时"
+                    : "我没办法创造非法宝可梦";
+                msg = $"<!@{username}>: {reason}";
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)

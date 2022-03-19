@@ -325,12 +325,7 @@ namespace SysBot.Pokemon
                 return update;
             }
 
-            if (Hub.Config.QQ.RandomEC)
-            {
-                toSend.SetRandomEC();
-            }
-
-            if (Hub.Config.QQ.UseTradePartnerInfo)
+            if (Hub.Config.Legality.UseTradePartnerInfo)
             {
                 await SetBoxPkmWithSwappedIDDetailsPLA(toSend, tradePartner, sav, token);
             }

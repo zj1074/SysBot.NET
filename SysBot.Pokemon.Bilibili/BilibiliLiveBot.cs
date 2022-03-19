@@ -53,14 +53,14 @@ namespace SysBot.Pokemon.Bilibili
 
                     string[] split = last.Split('：');
                     if (split.Length != 2 || Info.Count != 0) continue;
-                    var showdown = ShowdownTranslator.Chinese2Showdown(split[1]);
+                    var showdown = ShowdownTranslator<T>.Chinese2Showdown(split[1]);
                     if (showdown.Length <= 0) continue;
                     LogUtil.LogInfo($"收到命令\n{showdown}", LogIdentity);
                     var _ = CheckAndGetPkm(showdown, DefaultUserName, out var msg, out var pkm);
                     if (!_) continue;
                     var code = Info.GetRandomTradeCode();
                     File.WriteAllText(@"msg.txt",
-                        $"派送:{ShowdownTranslator.GameStrings.Species[pkm.Species]}\n密码:{code:0000 0000}");
+                        $"派送:{ShowdownTranslator<T>.GameStrings.Species[pkm.Species]}\n密码:{code:0000 0000}");
                     var __ = AddToTradeQueue(pkm, code, DefaultUserId, DefaultUserName, RequestSignificance.Favored,
                         PokeRoutineType.LinkTrade, out string message);
                 }

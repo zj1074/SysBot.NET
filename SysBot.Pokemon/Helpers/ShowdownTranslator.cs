@@ -1,9 +1,9 @@
 ﻿using PKHeX.Core;
 using System.Text.RegularExpressions;
 
-namespace SysBot.Pokemon.Dodo
+namespace SysBot.Pokemon
 {
-    public class ShowdownTranslator
+    public class ShowdownTranslator<T> where T : PKM
     {
         public static GameStrings GameStrings = GameInfo.GetStrings("zh");
         public static GameStrings GameStringsEn = GameInfo.GetStrings("en");
@@ -35,6 +35,8 @@ namespace SysBot.Pokemon.Dodo
             if (Regex.IsMatch(zh, "[A-Z?!？！]形态"))
             {
                 string formsUnown = Regex.Match(zh, "([A-Z?!？！])形态").Groups?[1]?.Value ?? "";
+                if (formsUnown == "？") formsUnown = "?";
+                else if (formsUnown == "！") formsUnown = "!";
                 result += $"-{formsUnown}";
                 zh = Regex.Replace(zh, "[A-Z?!？！]形态", "");
             }
@@ -86,6 +88,17 @@ namespace SysBot.Pokemon.Dodo
                     zh = zh.Replace(GameStrings.Natures[i], "");
                     break;
                 }
+            }
+
+            for (int i = 0; i < GameStrings.balllist.Length; i++)
+            {
+                if (GameStrings.balllist[i].Length == 0) continue;
+                if (!zh.Contains(GameStrings.balllist[i])) continue;
+                var ballStr = GameStringsEn.balllist[i];
+                if (typeof(T) == typeof(PA8) && ballStr is "Poké Ball" or "Great Ball" or "Ultra Ball") ballStr = "LA" + ballStr;
+                result += $"\nBall: {ballStr}";
+                zh = zh.Replace(GameStrings.balllist[i], "");
+                break;
             }
 
             return result;

@@ -1,20 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using DoDo.Open.Sdk.Models.Bots;
-using DoDo.Open.Sdk.Models.Channels;
 using DoDo.Open.Sdk.Models.Events;
-using DoDo.Open.Sdk.Models.Islands;
-using DoDo.Open.Sdk.Models.Members;
 using DoDo.Open.Sdk.Models.Messages;
 using DoDo.Open.Sdk.Models.Personals;
-using DoDo.Open.Sdk.Models.Resources;
-using DoDo.Open.Sdk.Models.Roles;
-using DoDo.Open.Sdk.Models.WebSockets;
 using DoDo.Open.Sdk.Services;
 using PKHeX.Core;
 using SysBot.Base;
@@ -25,7 +13,7 @@ namespace SysBot.Pokemon.Dodo
     {
         private readonly OpenApiService _openApiService;
         private static readonly string LogIdentity = "DodoBot";
-        private static readonly string Welcome = "at我并尝试对我说：\n头目异色怕寂寞性格98级母怪力\n六尾阿罗拉的样子形态\n未知图腾Y形态";
+        private static readonly string Welcome = "at我并尝试对我说：\n头目异色怕寂寞性格98级母怪力\n飞羽球六尾阿罗拉的样子形态\n未知图腾Y形态";
         private readonly string _channelId;
         private readonly string _botDodoId;
 
@@ -89,11 +77,18 @@ namespace SysBot.Pokemon.Dodo
 
             var content = messageBodyText.Content;
 
-            Console.WriteLine($"\n【{content}】");
             LogUtil.LogInfo($"{eventBody.Personal.NickName}({eventBody.DodoId}):{content}", LogIdentity);
             if (!content.Contains($"<@!{_botDodoId}>")) return;
-            //DodoBot<TP>.SendChannelMessage($"{eventBody.DodoId} {eventBody.Personal.NickName}", eventBody.ChannelId);
-            var ps = ShowdownTranslator.Chinese2Showdown(content);
+
+            content = content.Substring(content.IndexOf('>') + 1);
+            if (content.Trim().StartsWith("trade"))
+            {
+                content = content.Replace("trade", "");
+                DodoHelper<TP>.StartTrade(content, eventBody.DodoId, eventBody.Personal.NickName, eventBody.ChannelId);
+                return;
+            }
+
+            var ps = ShowdownTranslator<TP>.Chinese2Showdown(content);
             if (!string.IsNullOrWhiteSpace(ps))
             {
                 LogUtil.LogInfo($"收到命令\n{ps}", LogIdentity);
@@ -125,7 +120,7 @@ namespace SysBot.Pokemon.Dodo
             var msg = $"你在第{result.Position}位";
             var pk = result.Detail.Trade.TradeData;
             if (pk.Species != 0)
-                msg += $"，交换宝可梦：{ShowdownTranslator.GameStrings.Species[result.Detail.Trade.TradeData.Species]}";
+                msg += $"，交换宝可梦：{ShowdownTranslator<TP>.GameStrings.Species[result.Detail.Trade.TradeData.Species]}";
             return msg;
         }
 

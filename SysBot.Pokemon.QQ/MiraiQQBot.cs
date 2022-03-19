@@ -7,7 +7,6 @@ using SysBot.Base;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -158,7 +157,7 @@ namespace SysBot.Pokemon.QQ
             var msg = $"你在第{result.Position}位";
             var pk = result.Detail.Trade.TradeData;
             if (pk.Species != 0)
-                msg += $"，交换宝可梦：{ShowdownTranslator.GameStrings.Species[result.Detail.Trade.TradeData.Species]}";
+                msg += $"，交换宝可梦：{ShowdownTranslator<T>.GameStrings.Species[result.Detail.Trade.TradeData.Species]}";
             return msg;
         }
 
@@ -178,7 +177,7 @@ namespace SysBot.Pokemon.QQ
             if (receiver.MessageChain.OfType<AtMessage>().All(x => x.Target != Settings.QQ)) return;
             var text = receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text ?? "";
             if (string.IsNullOrWhiteSpace(text)) return;
-            string ps = ShowdownTranslator.Chinese2Showdown(text);
+            string ps = ShowdownTranslator<T>.Chinese2Showdown(text);
             if (string.IsNullOrWhiteSpace(ps)) return;
             LogUtil.LogInfo($"code\n{ps}", "HandlePokemonName");
             var _ = MiraiQQCommandsHelper<T>.AddToWaitingList(ps, receiver.Sender.Name,

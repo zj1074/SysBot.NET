@@ -30,13 +30,5 @@ namespace SysBot.Pokemon
 
         [Category(Operation), Description("Message sent when the Barrier is released.")]
         public string MessageStart { get; set; } = string.Empty;
-
-        // Operation
-
-        [Category(Operation), Description("Use TradePartnerInfo")]
-        public bool UseTradePartnerInfo { get; set; } = false;
-
-        [Category(Operation), Description("Random EC")]
-        public bool RandomEC { get; set; } = false;
     }
 }

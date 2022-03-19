@@ -325,7 +325,7 @@ namespace SysBot.Pokemon
                 return PokeTradeResult.RecoverOpenBox;
             }
 
-            if (Hub.Config.QQ.UseTradePartnerInfo)
+            if (Hub.Config.Legality.UseTradePartnerInfo)
             {
                 await SetPkmWithSwappedIDDetails(toSend, trainerName, sav, token);
             }

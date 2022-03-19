@@ -24,7 +24,7 @@ namespace SysBot.Pokemon.Dodo
             LogUtil.LogText($"Created trade details for {Username} - {Code}");
         }
 
-        public Action<PokeRoutineExecutor<T>>? OnFinish { private get; set; }
+        public Action<PokeRoutineExecutor<T>> OnFinish { private get; set; }
 
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, string message)
         {
@@ -57,9 +57,9 @@ namespace SysBot.Pokemon.Dodo
                 $"@{info.Trainer.TrainerName} (ID: {info.ID}): Initializing trade{receive} with you. Please be ready.";
             msg += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(msg);
-            var text = $"\n派送:{ShowdownTranslator.GameStrings.Species[Data.Species]}\n密码:见私信\n状态:初始化";
+            var text = $"\n派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:见私信\n状态:初始化";
             DodoBot<T>.SendChannelAtMessage(info.Trainer.ID, text, ChannelId);
-            DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"{info.Code:0000 0000}");
+            DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:{info.Code:0000 0000}");
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -69,7 +69,7 @@ namespace SysBot.Pokemon.Dodo
             var message = $"I'm waiting for you{trainer}! My IGN is {routine.InGameName}.";
             message += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(message);
-            var text = $"派送:{ShowdownTranslator.GameStrings.Species[Data.Species]}\n密码:见私信\n状态:搜索中";
+            var text = $"派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:见私信\n状态:搜索中";
             DodoBot<T>.SendChannelMessage(text, ChannelId);
             //DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"{info.Code:0000 0000}");
         }

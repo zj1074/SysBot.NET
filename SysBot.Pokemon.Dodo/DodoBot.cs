@@ -15,10 +15,12 @@ namespace SysBot.Pokemon.Dodo
 
         public static OpenApiService OpenApiService;
 
+        private DodoSettings Settings;
+
         public DodoBot(DodoSettings settings, PokeTradeHub<T> hub)
         {
             Hub = hub;
-
+            Settings = settings;
             //开放接口服务
             OpenApiService = new OpenApiService(new OpenApiOptions
             {
@@ -35,7 +37,31 @@ namespace SysBot.Pokemon.Dodo
                 IsAsync = true
             });
             //接收事件消息
-            Task.Run(async () => { await openEventService.ReceiveAsync(); });
+            Task.Run(async () =>
+            {
+                StartDistribution();
+                await openEventService.ReceiveAsync();
+            });
+        }
+
+        public void StartDistribution()
+        {
+            var channelId = Settings.ChannelId;
+            if (string.IsNullOrWhiteSpace(channelId)) return;
+            SendChannelMessage("开始派送", channelId);
+            Task.Delay(1_000).ConfigureAwait(false);
+            if (typeof(T) == typeof(PK8))
+            {
+                SendChannelMessage("当前版本为剑盾", channelId);
+            }
+            else if (typeof(T) == typeof(PB8))
+            {
+                SendChannelMessage("当前版本为晶灿钻石明亮珍珠", channelId);
+            }
+            else if (typeof(T) == typeof(PA8))
+            {
+                SendChannelMessage("当前版本为阿尔宙斯", channelId);
+            }
         }
 
         public static void SendChannelMessage(string message, string channelId)

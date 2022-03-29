@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using DoDo.Open.Sdk.Models.Bots;
 using DoDo.Open.Sdk.Models.Events;
 using DoDo.Open.Sdk.Models.Messages;
@@ -73,6 +74,22 @@ namespace SysBot.Pokemon.Dodo
             var eventBody = input.Data.EventBody;
             if (!string.IsNullOrWhiteSpace(_channelId) && eventBody.ChannelId != _channelId) return;
 
+            if (eventBody.MessageBody is MessageBodyFile messageBodyFile)
+            {
+                if (!ValidFileSize(messageBodyFile.Size ?? 0) || !ValidFileName(messageBodyFile.Name))
+                {
+                    DodoBot<TP>.SendChannelMessage("非法文件", eventBody.ChannelId);
+                    return;
+                }
+                var p = GetPKM(new WebClient().DownloadData(messageBodyFile.Url));
+                if (p is TP pkm)
+                {
+                    DodoHelper<TP>.StartTrade(pkm, eventBody.DodoId, eventBody.Personal.NickName, eventBody.ChannelId);
+                }
+
+                return;
+            }
+
             if (eventBody.MessageBody is not MessageBodyText messageBodyText) return;
 
             var content = messageBodyText.Content;
@@ -133,6 +150,36 @@ namespace SysBot.Pokemon.Dodo
                 QueueResultRemove.Removed => "已删除",
                 _ => "你不在队列里",
             };
+        }
+
+        private static bool ValidFileSize(long size)
+        {
+            if (typeof(TP) == typeof(PK8) || typeof(TP) == typeof(PB8))
+            {
+                return size == 344;
+            }
+
+            if (typeof(TP) == typeof(PA8))
+            {
+                return size == 376;
+            }
+
+            return false;
+        }
+
+        private static bool ValidFileName(string fileName)
+        {
+            return (typeof(TP) == typeof(PK8) && fileName.EndsWith("pk8", StringComparison.OrdinalIgnoreCase)
+                    || typeof(TP) == typeof(PB8) && fileName.EndsWith("pb8", StringComparison.OrdinalIgnoreCase)
+                    || typeof(TP) == typeof(PA8) && fileName.EndsWith("pa8", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static PKM GetPKM(byte[] bytes)
+        {
+            if (typeof(TP) == typeof(PK8)) return new PK8(bytes);
+            if (typeof(TP) == typeof(PB8)) return new PB8(bytes);
+            if (typeof(TP) == typeof(PA8)) return new PA8(bytes);
+            return null;
         }
 
         public override void MessageReactionEvent(

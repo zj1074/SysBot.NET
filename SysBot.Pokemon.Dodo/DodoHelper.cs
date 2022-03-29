@@ -19,9 +19,12 @@ namespace SysBot.Pokemon.Dodo
                 return;
             }
 
-            var code = DodoBot<T>.Info.GetRandomTradeCode();
-            var text = $"派送:{ShowdownTranslator<T>.GameStrings.Species[pkm.Species]}\n密码:{code:0000 0000}";
+            StartTrade(pkm, dodoId, nickName, channelId);
+        }
 
+        public static void StartTrade(T pkm, string dodoId, string nickName, string channelId)
+        {
+            var code = DodoBot<T>.Info.GetRandomTradeCode();
             var __ = AddToTradeQueue(pkm, code, ulong.Parse(dodoId), nickName, channelId,
                 PokeRoutineType.LinkTrade, out string message);
             DodoBot<T>.SendChannelMessage(message, channelId);

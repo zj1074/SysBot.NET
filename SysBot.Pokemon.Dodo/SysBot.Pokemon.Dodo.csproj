@@ -6,7 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DoDo.Open.Sdk" Version="1.2.0" />
+		<PackageReference Include="DoDo.Open.Sdk" Version="1.2.4" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\SysBot.Base\SysBot.Base.csproj" />

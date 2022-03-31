@@ -131,7 +131,7 @@ namespace SysBot.Pokemon.QQ
         private async Task HandleCancel(GroupMessageReceiver receiver)
         {
             if (receiver.MessageChain.OfType<AtMessage>().All(x => x.Target != Settings.QQ)) return;
-            bool isCancelMsg = (receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text ?? "").Trim()
+            bool isCancelMsg = (receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text ?? "").Trim()
                 .StartsWith("取消");
             if (!isCancelMsg) return;
             var result = Info.ClearTrade(ulong.Parse(receiver.Sender.Id));
@@ -142,7 +142,7 @@ namespace SysBot.Pokemon.QQ
         private async Task HandlePosition(GroupMessageReceiver receiver)
         {
             if (receiver.MessageChain.OfType<AtMessage>().All(x => x.Target != Settings.QQ)) return;
-            bool isPositionMsg = (receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text ?? "").Trim()
+            bool isPositionMsg = (receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text ?? "").Trim()
                 .StartsWith("位置");
             if (!isPositionMsg) return;
             var result = Info.CheckPosition(ulong.Parse(receiver.Sender.Id));
@@ -175,7 +175,7 @@ namespace SysBot.Pokemon.QQ
         private async Task HandlePokemonName(GroupMessageReceiver receiver)
         {
             if (receiver.MessageChain.OfType<AtMessage>().All(x => x.Target != Settings.QQ)) return;
-            var text = receiver.MessageChain.OfType<PlainMessage>()?.First()?.Text ?? "";
+            var text = receiver.MessageChain.OfType<PlainMessage>()?.FirstOrDefault()?.Text ?? "";
             if (string.IsNullOrWhiteSpace(text)) return;
             string ps = ShowdownTranslator<T>.Chinese2Showdown(text);
             if (string.IsNullOrWhiteSpace(ps)) return;
@@ -257,7 +257,7 @@ namespace SysBot.Pokemon.QQ
             string qqMsg;
             try
             {
-                qqMsg = receiver.MessageChain.OfType<PlainMessage>().First().Text;
+                qqMsg = receiver.MessageChain.OfType<PlainMessage>().FirstOrDefault()?.Text ?? "";
             }
             catch
             {

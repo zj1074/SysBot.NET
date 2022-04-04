@@ -59,7 +59,8 @@ namespace SysBot.Pokemon.Dodo
             LogUtil.LogText(msg);
             var text = $"\n派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:见私信\n状态:初始化";
             DodoBot<T>.SendChannelAtMessage(info.Trainer.ID, text, ChannelId);
-            DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:{info.Code:0000 0000}");
+            DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(),
+                $"派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:{info.Code:0000 0000}");
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -86,6 +87,12 @@ namespace SysBot.Pokemon.Dodo
         {
             var msg = $"Details for {result.FileName}: " + message;
             LogUtil.LogText(msg);
+            if (result.Species != 0 && info.Type == PokeTradeType.Dump)
+            {
+                var text =
+                    $"species:{result.Species}\npid:{result.PID}\nec:{result.EncryptionConstant}\nIVs:{string.Join(",", result.IVs)}";
+                DodoBot<T>.SendChannelMessage(text, ChannelId);
+            }
         }
     }
 }

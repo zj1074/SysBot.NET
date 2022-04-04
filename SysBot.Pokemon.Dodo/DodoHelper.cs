@@ -30,6 +30,14 @@ namespace SysBot.Pokemon.Dodo
             DodoBot<T>.SendChannelMessage(message, channelId);
         }
 
+        public static void StartDump(string dodoId, string nickName, string channelId)
+        {
+            var code = DodoBot<T>.Info.GetRandomTradeCode();
+            var __ = AddToTradeQueue(new T(), code, ulong.Parse(dodoId), nickName, channelId,
+                PokeRoutineType.Dump, out string message);
+            DodoBot<T>.SendChannelMessage(message, channelId);
+        }
+
 
         public static bool CheckAndGetPkm(string setstring, string username, out string msg, out T outPkm)
         {
@@ -107,7 +115,7 @@ namespace SysBot.Pokemon.Dodo
         {
             var trainer = new PokeTradeTrainerInfo(name, userId);
             var notifier = new DodoTradeNotifier<T>(pk, trainer, code, name, channelId);
-            var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : PokeTradeType.Specific;
+            var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : (type == PokeRoutineType.Dump ? PokeTradeType.Dump : PokeTradeType.Specific);
             var detail =
                 new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, true);
             var trade = new TradeEntry<T>(detail, userId, type, name);

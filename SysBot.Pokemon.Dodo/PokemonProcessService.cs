@@ -103,6 +103,11 @@ namespace SysBot.Pokemon.Dodo
                 content = content.Replace("trade", "");
                 DodoHelper<TP>.StartTrade(content, eventBody.DodoId, eventBody.Personal.NickName, eventBody.ChannelId);
                 return;
+            } 
+            else if (content.Trim().StartsWith("dump"))
+            {
+                DodoHelper<TP>.StartDump(eventBody.DodoId, eventBody.Personal.NickName, eventBody.ChannelId);
+                return;
             }
 
             var ps = ShowdownTranslator<TP>.Chinese2Showdown(content);

@@ -398,11 +398,11 @@ namespace SysBot.Pokemon
         private async Task<bool> SetPkmWithSwappedIDDetails(PK8 toSend, string trainerName, SAV8SWSH sav, CancellationToken token)
         {
             var data = await Connection.ReadBytesAsync(LinkTradePartnerNameOffset - 0x8, 8, token).ConfigureAwait(false);
-            var tidsid = BitConverter.ToInt32(data, 0);
+            var tidsid = BitConverter.ToUInt32(data, 0);
             var cln = (PK8)toSend.Clone();
             cln.OT_Gender = data[6];
-            cln.TrainerID7 = tidsid % 1_000_000;
-            cln.TrainerSID7 = tidsid / 1_000_000;
+            cln.TrainerID7 = (int)(tidsid % 1_000_000);
+            cln.TrainerSID7 = (int)(tidsid / 1_000_000);
             cln.Language = data[5];
             cln.OT_Name = trainerName;
             cln.ClearNickname();

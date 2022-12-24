@@ -57,7 +57,7 @@ namespace SysBot.Pokemon.Bilibili
             msg += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(msg);
             File.WriteAllText("msg.txt",
-                $"派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:{info.Code:0000 0000}\n状态:初始化");
+                $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}\n状态:初始化");
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -68,7 +68,7 @@ namespace SysBot.Pokemon.Bilibili
             message += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(message);
             File.WriteAllText("msg.txt",
-                $"派送:{ShowdownTranslator<T>.GameStrings.Species[Data.Species]}\n密码:{info.Code:0000 0000}\n状态:搜索中");
+                $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}\n状态:搜索中");
         }
 
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeSummary message)

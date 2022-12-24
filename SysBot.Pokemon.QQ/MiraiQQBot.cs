@@ -157,7 +157,7 @@ namespace SysBot.Pokemon.QQ
             var msg = $"你在第{result.Position}位";
             var pk = result.Detail.Trade.TradeData;
             if (pk.Species != 0)
-                msg += $"，交换宝可梦：{ShowdownTranslator<T>.GameStrings.Species[result.Detail.Trade.TradeData.Species]}";
+                msg += $"，交换宝可梦：{ShowdownTranslator<T>.GameStringsZh.Species[result.Detail.Trade.TradeData.Species]}";
             return msg;
         }
 

@@ -60,7 +60,7 @@ namespace SysBot.Pokemon.Bilibili
                     if (!_) continue;
                     var code = Info.GetRandomTradeCode();
                     File.WriteAllText(@"msg.txt",
-                        $"派送:{ShowdownTranslator<T>.GameStrings.Species[pkm.Species]}\n密码:{code:0000 0000}");
+                        $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[pkm.Species]}\n密码:{code:0000 0000}");
                     var __ = AddToTradeQueue(pkm, code, DefaultUserId, DefaultUserName, RequestSignificance.Favored,
                         PokeRoutineType.LinkTrade, out string message);
                 }

@@ -142,7 +142,7 @@ namespace SysBot.Pokemon.Dodo
             var msg = $"你在第{result.Position}位";
             var pk = result.Detail.Trade.TradeData;
             if (pk.Species != 0)
-                msg += $"，交换宝可梦：{ShowdownTranslator<TP>.GameStrings.Species[result.Detail.Trade.TradeData.Species]}";
+                msg += $"，交换宝可梦：{ShowdownTranslator<TP>.GameStringsZh.Species[result.Detail.Trade.TradeData.Species]}";
             return msg;
         }
 

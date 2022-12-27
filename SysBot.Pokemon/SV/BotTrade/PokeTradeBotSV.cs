@@ -317,7 +317,8 @@ namespace SysBot.Pokemon
             }
             await Task.Delay(2_000, token).ConfigureAwait(false);
 
-            var tradePartner = await GetTradePartnerInfo(token).ConfigureAwait(false);
+            var tradePartnerFullInfo = await GetTradePartnerFullInfo(token).ConfigureAwait(false);
+            var tradePartner = new TradePartnerSV(tradePartnerFullInfo);
             var trainerNID = await GetTradePartnerNID(TradePartnerNIDOffset, token).ConfigureAwait(false);
             RecordUtil<PokeTradeBot>.Record($"Initiating\t{trainerNID:X16}\t{tradePartner.TrainerName}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
             Log($"Found Link Trade partner: {tradePartner.TrainerName}-{tradePartner.TID7} (ID: {trainerNID})");
@@ -328,6 +329,11 @@ namespace SysBot.Pokemon
                 await Click(A, 1_000, token).ConfigureAwait(false); // Ensures we dismiss a popup.
                 await ExitTradeToPortal(false, token).ConfigureAwait(false);
                 return partnerCheck;
+            }
+
+            if (Hub.Config.Legality.UseTradePartnerInfo)
+            {
+                await SetBoxPkmWithSwappedIDDetailsSV(toSend, tradePartnerFullInfo, sav, token);
             }
 
             poke.SendNotification(this, $"Found Link Trade partner: {tradePartner.TrainerName}. Waiting for a Pokémon...");
@@ -754,11 +760,16 @@ namespace SysBot.Pokemon
 
         private async Task<TradePartnerSV> GetTradePartnerInfo(CancellationToken token)
         {
+            return new TradePartnerSV(await GetTradePartnerFullInfo(token));
+        }
+
+        private async Task<TradeMyStatus> GetTradePartnerFullInfo(CancellationToken token)
+        {
             // We're able to see both users' MyStatus, but one of them will be ourselves.
             var trader_info = await GetTradePartnerMyStatus(Offsets.Trader1MyStatusPointer, token).ConfigureAwait(false);
             if (trader_info.OT == OT && trader_info.DisplaySID == DisplaySID && trader_info.DisplayTID == DisplayTID) // This one matches ourselves.
                 trader_info = await GetTradePartnerMyStatus(Offsets.Trader2MyStatusPointer, token).ConfigureAwait(false);
-            return new TradePartnerSV(trader_info);
+            return trader_info;
         }
 
         protected virtual async Task<(PK9 toSend, PokeTradeResult check)> GetEntityToSend(SAV9SV sav, PokeTradeDetail<PK9> poke, PK9 offered, byte[] oldEC, PK9 toSend, PartnerDataHolder partnerID, CancellationToken token)
@@ -1005,5 +1016,40 @@ namespace SysBot.Pokemon
             Name = name,
             Comment = $"Added automatically on {DateTime.Now:yyyy.MM.dd-hh:mm:ss} ({comment})",
         };
+
+        private async Task<bool> SetBoxPkmWithSwappedIDDetailsSV(PK9 toSend, TradeMyStatus tradePartner, SAV9SV sav, CancellationToken token)
+        {
+            if (toSend.Species == (ushort)Species.Ditto)
+            {
+                Log($"Do nothing to trade Pokemon, since pokemon is Ditto");
+                return false;
+            }
+            var cln = (PK9)toSend.Clone();
+            cln.OT_Gender = tradePartner.Gender;
+            cln.TrainerID7 = (int)Math.Abs(tradePartner.DisplayTID);
+            cln.TrainerSID7 = (int)Math.Abs(tradePartner.DisplaySID);
+            cln.Language = tradePartner.Language;
+            cln.OT_Name = tradePartner.OT;
+            cln.Version = tradePartner.Game;
+            cln.ClearNickname();
+
+            if (toSend.IsShiny)
+                cln.SetShiny();
+
+            cln.RefreshChecksum();
+
+            var tradeSV = new LegalityAnalysis(cln);
+            if (tradeSV.Valid)
+            {
+                Log($"Pokemon is valid, use trade partnerInfo");
+                await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
+            }
+            else
+            {
+                Log($"Pokemon not valid, do nothing to trade Pokemon");
+            }
+
+            return tradeSV.Valid;
+        }
     }
 }

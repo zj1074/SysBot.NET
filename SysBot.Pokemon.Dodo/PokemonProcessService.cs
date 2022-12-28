@@ -159,7 +159,7 @@ namespace SysBot.Pokemon.Dodo
 
         private static bool ValidFileSize(long size)
         {
-            if (typeof(TP) == typeof(PK8) || typeof(TP) == typeof(PB8))
+            if (typeof(TP) == typeof(PK8) || typeof(TP) == typeof(PB8) || typeof(TP) == typeof(PK9))
             {
                 return size == 344;
             }
@@ -176,7 +176,8 @@ namespace SysBot.Pokemon.Dodo
         {
             return (typeof(TP) == typeof(PK8) && fileName.EndsWith("pk8", StringComparison.OrdinalIgnoreCase)
                     || typeof(TP) == typeof(PB8) && fileName.EndsWith("pb8", StringComparison.OrdinalIgnoreCase)
-                    || typeof(TP) == typeof(PA8) && fileName.EndsWith("pa8", StringComparison.OrdinalIgnoreCase));
+                    || typeof(TP) == typeof(PA8) && fileName.EndsWith("pa8", StringComparison.OrdinalIgnoreCase)
+                    || typeof(TP) == typeof(PK9) && fileName.EndsWith("pk9", StringComparison.OrdinalIgnoreCase));
         }
 
         private static PKM GetPKM(byte[] bytes)
@@ -184,6 +185,7 @@ namespace SysBot.Pokemon.Dodo
             if (typeof(TP) == typeof(PK8)) return new PK8(bytes);
             if (typeof(TP) == typeof(PB8)) return new PB8(bytes);
             if (typeof(TP) == typeof(PA8)) return new PA8(bytes);
+            if (typeof(TP) == typeof(PK9)) return new PK9(bytes);
             return null;
         }
 

@@ -1042,7 +1042,7 @@ namespace SysBot.Pokemon
             if (tradeSV.Valid)
             {
                 Log($"Pokemon is valid, use trade partnerInfo");
-                await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
+                await SetBoxPokemonAbsolute(BoxStartOffset, cln, token, sav).ConfigureAwait(false);
             }
             else
             {

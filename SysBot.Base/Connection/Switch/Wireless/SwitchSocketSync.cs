@@ -17,7 +17,16 @@ namespace SysBot.Base
         public override void Connect()
         {
             Log("Connecting to device...");
-            Connection.Connect(Info.IP, Info.Port);
+            try
+            {
+                Connection.Connect(Info.IP, Info.Port);
+            }
+            catch (Exception e)
+            {
+                Log($"Connect failed: {e.Message}");
+                Connected = false;
+                return;
+            }
             Connected = true;
             Log("Connected!");
         }

@@ -40,7 +40,16 @@ namespace SysBot.Base
         public override void Disconnect()
         {
             Log("Disconnecting from device...");
-            Connection.Disconnect(false);
+            try
+            {
+                Connection.Disconnect(false);
+            }
+            catch (Exception e)
+            {
+                Log($"Disconnect failed: {e.Message}");
+                Connected = false;
+                return;
+            }
             Connected = false;
             Log("Disconnected!");
         }

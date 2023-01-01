@@ -14,7 +14,7 @@ namespace SysBot.Pokemon.Dodo
     {
         private readonly OpenApiService _openApiService;
         private static readonly string LogIdentity = "DodoBot";
-        private static readonly string Welcome = "at我并尝试对我说：\n头目异色怕寂寞性格98级母怪力\n飞羽球六尾阿罗拉的样子形态\n未知图腾Y形态";
+        private static readonly string Welcome = "at我并尝试对我说：\n皮卡丘\ntrade ps代码\n或者直接拖一个文件进来";
         private readonly string _channelId;
         private readonly string _botDodoId;
 

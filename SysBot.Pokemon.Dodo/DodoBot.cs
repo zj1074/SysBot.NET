@@ -62,6 +62,10 @@ namespace SysBot.Pokemon.Dodo
             {
                 SendChannelMessage("当前版本为阿尔宙斯", channelId);
             }
+            else if (typeof(T) == typeof(PK9))
+            {
+                SendChannelMessage("当前版本为朱紫", channelId);
+            }
         }
 
         public static void SendChannelMessage(string message, string channelId)

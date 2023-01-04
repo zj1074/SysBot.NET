@@ -19,10 +19,22 @@ namespace SysBot.Pokemon.Dodo
                 return;
             }
 
-            StartTrade(pkm, dodoId, nickName, channelId);
+            StartTradeWithoutCheck(pkm, dodoId, nickName, channelId);
         }
 
         public static void StartTrade(T pkm, string dodoId, string nickName, string channelId)
+        {
+            var _ = CheckPkm(pkm, dodoId, out var msg);
+            if (!_)
+            {
+                DodoBot<T>.SendChannelMessage(msg, channelId);
+                return;
+            }
+
+            StartTradeWithoutCheck(pkm, dodoId, nickName, channelId);
+        }
+
+        public static void StartTradeWithoutCheck(T pkm, string dodoId, string nickName, string channelId)
         {
             var code = DodoBot<T>.Info.GetRandomTradeCode();
             var __ = AddToTradeQueue(pkm, code, ulong.Parse(dodoId), nickName, channelId,
@@ -38,6 +50,45 @@ namespace SysBot.Pokemon.Dodo
             DodoBot<T>.SendChannelMessage(message, channelId);
         }
 
+        public static bool CheckPkm(T pkm, string username, out string msg)
+        {
+            if (!DodoBot<T>.Info.GetCanQueue())
+            {
+                msg = "对不起, 我不再接受队列请求!";
+                return false;
+            }
+            try
+            {
+                if (!pkm.CanBeTraded())
+                {
+                    msg = $"取消派送, <@!{username}>: 官方禁止该宝可梦交易!";
+                    return false;
+                }
+
+                if (pkm is T pk)
+                {
+                    var valid = new LegalityAnalysis(pkm).Valid;
+                    if (valid)
+                    {
+                        msg =
+                            $"<@!{username}> - 已加入等待队列. 如果你选宝可梦的速度太慢，你的派送请求将被取消!";
+                        return true;
+                    }
+                }
+
+                var reason = "我没办法创造非法宝可梦";
+                msg = $"<@!{username}>: {reason}";
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                LogUtil.LogSafe(ex, nameof(DodoBot<T>));
+                msg = $"取消派送, <@!{username}>: 发生了一个错误";
+            }
+
+            return false;
+        }
 
         public static bool CheckAndGetPkm(string setstring, string username, out string msg, out T outPkm)
         {

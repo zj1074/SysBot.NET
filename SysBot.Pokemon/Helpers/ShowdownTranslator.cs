@@ -14,7 +14,7 @@ namespace SysBot.Pokemon
             // 添加宝可梦
             int candidateSpecieNo = 0;
             int candidateSpecieStringLength = 0;
-            for (int i = 0; i < GameStringsZh.Species.Count; i++)
+            for (int i = 1; i < GameStringsZh.Species.Count; i++)
             {
                 if (zh.Contains(GameStringsZh.Species[i]) && GameStringsZh.Species[i].Length > candidateSpecieStringLength)
                 {
@@ -88,7 +88,7 @@ namespace SysBot.Pokemon
             // 添加持有物
             if (zh.Contains("持有"))
             {
-                for (int i = 0; i < GameStringsZh.Item.Count; i++)
+                for (int i = 1; i < GameStringsZh.Item.Count; i++)
                 {
                     if (GameStringsZh.Item[i].Length == 0) continue;
                     if (!zh.Contains("持有" + GameStringsZh.Item[i])) continue;
@@ -99,7 +99,7 @@ namespace SysBot.Pokemon
             }
             else if (zh.Contains("携带"))
             {
-                for (int i = 0; i < GameStringsZh.Item.Count; i++)
+                for (int i = 1; i < GameStringsZh.Item.Count; i++)
                 {
                     if (GameStringsZh.Item[i].Length == 0) continue;
                     if (!zh.Contains("携带" + GameStringsZh.Item[i])) continue;
@@ -154,7 +154,7 @@ namespace SysBot.Pokemon
             }
 
             // 添加球种
-            for (int i = 0; i < GameStringsZh.balllist.Length; i++)
+            for (int i = 1; i < GameStringsZh.balllist.Length; i++)
             {
                 if (GameStringsZh.balllist[i].Length == 0) continue;
                 if (!zh.Contains(GameStringsZh.balllist[i])) continue;
@@ -166,7 +166,7 @@ namespace SysBot.Pokemon
             }
 
             // 添加特性
-            for (int i = 0; i < GameStringsZh.Ability.Count; i++)
+            for (int i = 1; i < GameStringsZh.Ability.Count; i++)
             {
                 if (GameStringsZh.Ability[i].Length == 0) continue;
                 if (!zh.Contains(GameStringsZh.Ability[i] + "特性")) continue;

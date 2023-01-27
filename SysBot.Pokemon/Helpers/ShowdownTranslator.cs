@@ -363,6 +363,12 @@ namespace SysBot.Pokemon
                 }
             }
 
+            if (candidateSpecieNo == (int)Species.Ditto && zh.Contains("异国"))
+            {
+                result += "\nLanguage: Italian";
+                zh = zh.Replace("异国", "");
+            }
+
             return result;
         }
     }

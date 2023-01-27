@@ -79,8 +79,8 @@ namespace SysBot.Pokemon
                 Log("Identifying trainer data of the host console.");
                 var sav = await IdentifyTrainer(token).ConfigureAwait(false);
                 OT = sav.OT;
-                DisplaySID = (int)sav.DisplaySID;
-                DisplayTID = (int)sav.DisplayTID;
+                DisplaySID = sav.DisplaySID;
+                DisplayTID = sav.DisplayTID;
                 RecentTrainerCache.SetRecentTrainer(sav);
                 await InitializeSessionOffsets(token).ConfigureAwait(false);
 

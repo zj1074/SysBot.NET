@@ -43,7 +43,7 @@ namespace SysBot.Pokemon.Discord
         private static bool IsValidInstructionSet(ReadOnlySpan<char> split, out List<StringInstruction> invalid)
         {
             invalid = new List<StringInstruction>();
-            var set = new StringInstructionSet(split.ToArray());
+            var set = new StringInstructionSet(split);
             foreach (var s in set.Filters.Concat(set.Instructions))
             {
                 var type = BatchEditing.GetPropertyType(s.PropertyName);

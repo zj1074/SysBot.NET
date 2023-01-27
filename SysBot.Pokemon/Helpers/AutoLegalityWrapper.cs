@@ -62,8 +62,8 @@ namespace SysBot.Pokemon
                     var fallback = new SimpleTrainerInfo(v)
                     {
                         Language = lang,
-                        TID = TID,
-                        SID = SID,
+                        TID16 = (ushort)TID,
+                        SID16 = (ushort)SID,
                         OT = OT,
                         Generation = i,
                     };

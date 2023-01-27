@@ -44,7 +44,7 @@ namespace SysBot.Pokemon.Discord
         private static bool IsValidInstructionSet(List<string> split, out List<StringInstruction> invalid)
         {
             invalid = new List<StringInstruction>();
-            var set = new StringInstructionSet(split);
+            var set = new StringInstructionSet(split.ToArray());
             foreach (var s in set.Filters.Concat(set.Instructions))
             {
                 var type = BatchEditing.GetPropertyType(s.PropertyName);

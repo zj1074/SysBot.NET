@@ -79,8 +79,8 @@ namespace SysBot.Pokemon
                 Log("Identifying trainer data of the host console.");
                 var sav = await IdentifyTrainer(token).ConfigureAwait(false);
                 OT = sav.OT;
-                DisplaySID = sav.DisplaySID;
-                DisplayTID = sav.DisplayTID;
+                DisplaySID = (int)sav.DisplaySID;
+                DisplayTID = (int)sav.DisplayTID;
                 RecentTrainerCache.SetRecentTrainer(sav);
                 await InitializeSessionOffsets(token).ConfigureAwait(false);
 
@@ -1056,8 +1056,8 @@ namespace SysBot.Pokemon
             }
             var cln = (PK9)toSend.Clone();
             cln.OT_Gender = tradePartner.Gender;
-            cln.TrainerID7 = (int)Math.Abs(tradePartner.DisplayTID);
-            cln.TrainerSID7 = (int)Math.Abs(tradePartner.DisplaySID);
+            cln.TrainerTID7 = (uint)Math.Abs(tradePartner.DisplayTID);
+            cln.TrainerSID7 = (uint)Math.Abs(tradePartner.DisplaySID);
             cln.Language = tradePartner.Language;
             cln.OT_Name = tradePartner.OT;
             cln.Version = tradePartner.Game;

@@ -44,9 +44,10 @@ namespace SysBot.Pokemon
             // 识别地区形态
             foreach (var s in formDict)
             {
-                if (!zh.Contains(s.Key + "形态")) continue;
+                var searchKey = s.Key.EndsWith("形态") ? s.Key : s.Key + "形态";
+                if (!zh.Contains(searchKey)) continue;
                 result += $"-{s.Value}";
-                zh = zh.Replace(s.Key + "形态", "");
+                zh = zh.Replace(searchKey, "");
                 break;
             }
 
@@ -349,7 +350,7 @@ namespace SysBot.Pokemon
             return result;
         }
 
-        #region 形态中文ps字典
+        #region 形态中文ps字典，感谢ppllouf
         public static Dictionary<string,string> formDict = new Dictionary<string,string> {
             {"阿罗拉","Alola"},
             {"初始","Original"},

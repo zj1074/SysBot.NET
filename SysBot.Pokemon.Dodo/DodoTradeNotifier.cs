@@ -99,7 +99,7 @@ namespace SysBot.Pokemon.Dodo
             if (result.Species != 0 && info.Type == PokeTradeType.Dump)
             {
                 var text =
-                    $"species:{result.Species}\npid:{result.PID}\nec:{result.EncryptionConstant}\nIVs:{string.Join(",", result.IVs)}";
+                    $"species:{result.Species}\npid:{result.PID}\nec:{result.EncryptionConstant}\nIVs:{string.Join(",", result.IVs)}\nisShiny:{result.IsShiny}";
                 DodoBot<T>.SendChannelMessage(text, ChannelId);
             }
         }

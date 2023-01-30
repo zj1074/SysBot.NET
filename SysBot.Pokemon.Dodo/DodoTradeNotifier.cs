@@ -36,7 +36,8 @@ namespace SysBot.Pokemon.Dodo
                 string tid = regex.Match(message).Groups[1].ToString();
                 regex = new Regex("SID: (\\d+)");
                 string sid = regex.Match(message).Groups[1].ToString();
-                DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"找到你了，你的SID7:{sid},TID7:{tid}");
+                DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"找到你了，你的SID7:{sid},TID7:{tid}",
+                    info.Context.GetValueOrDefault("islandSourceId", ""));
             }
         }
 

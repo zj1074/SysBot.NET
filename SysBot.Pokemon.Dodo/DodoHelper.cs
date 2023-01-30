@@ -165,11 +165,10 @@ namespace SysBot.Pokemon.Dodo
             PokeRoutineType type, out string msg)
         {
             var trainer = new PokeTradeTrainerInfo(name, userId);
-            var notifier = new DodoTradeNotifier<T>(pk, trainer, code, name, channelId);
+            var notifier = new DodoTradeNotifier<T>(pk, trainer, code, name, channelId, islandSourceId);
             var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : (type == PokeRoutineType.Dump ? PokeTradeType.Dump : PokeTradeType.Specific);
             var detail =
                 new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, true);
-            detail.Context.Add("islandSourceId", islandSourceId);
             var trade = new TradeEntry<T>(detail, userId, type, name);
 
             var added = DodoBot<T>.Info.AddToTradeQueue(trade, userId, false);

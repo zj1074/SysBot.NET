@@ -14,14 +14,17 @@ namespace SysBot.Pokemon.Dodo
         private string Username { get; }
 
         private string ChannelId { get; }
+        private string IslandSourceId { get; }
 
-        public DodoTradeNotifier(T data, PokeTradeTrainerInfo info, int code, string username, string channelId)
+        public DodoTradeNotifier(T data, PokeTradeTrainerInfo info, int code, string username, string channelId,
+            string islandSourceId)
         {
             Data = data;
             Info = info;
             Code = code;
             Username = username;
             ChannelId = channelId;
+            IslandSourceId = islandSourceId;
             LogUtil.LogText($"Created trade details for {Username} - {Code}");
         }
 
@@ -37,7 +40,7 @@ namespace SysBot.Pokemon.Dodo
                 regex = new Regex("SID: (\\d+)");
                 string sid = regex.Match(message).Groups[1].ToString();
                 DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"找到你了，你的SID7:{sid},TID7:{tid}",
-                    info.Context.GetValueOrDefault("islandSourceId", ""));
+                    IslandSourceId);
             }
         }
 
@@ -71,7 +74,7 @@ namespace SysBot.Pokemon.Dodo
             DodoBot<T>.SendChannelAtMessage(info.Trainer.ID, text, ChannelId);
             DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(),
                 $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}",
-                info.Context.GetValueOrDefault("islandSourceId", ""));
+                IslandSourceId);
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -83,7 +86,7 @@ namespace SysBot.Pokemon.Dodo
             LogUtil.LogText(message);
             var text = $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:见私信\n状态:搜索中";
             DodoBot<T>.SendChannelMessage(text, ChannelId);
-            //DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"{info.Code:0000 0000}");
+            //DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"{info.Code:0000 0000}", IslandSourceId);
         }
 
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeSummary message)

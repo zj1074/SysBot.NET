@@ -1066,7 +1066,7 @@ namespace SysBot.Pokemon
                 Log($"Do nothing to trade Pokemon, since pokemon is Ditto");
                 return false;
             }
-            var cln = (PK9)toSend.Clone();
+            var cln = toSend.Clone();
             cln.OT_Gender = tradePartner.Gender;
             cln.TrainerTID7 = (uint)Math.Abs(tradePartner.DisplayTID);
             cln.TrainerSID7 = (uint)Math.Abs(tradePartner.DisplaySID);

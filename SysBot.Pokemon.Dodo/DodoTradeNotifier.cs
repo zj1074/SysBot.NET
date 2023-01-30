@@ -69,7 +69,8 @@ namespace SysBot.Pokemon.Dodo
             var text = $"\n派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:见私信\n状态:初始化";
             DodoBot<T>.SendChannelAtMessage(info.Trainer.ID, text, ChannelId);
             DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(),
-                $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}");
+                $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}",
+                info.Context.GetValueOrDefault("islandSourceId", ""));
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)

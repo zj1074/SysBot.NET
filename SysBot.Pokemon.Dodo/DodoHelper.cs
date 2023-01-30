@@ -10,7 +10,7 @@ namespace SysBot.Pokemon.Dodo
 {
     public class DodoHelper<T> where T : PKM, new()
     {
-        public static void StartTrade(string ps, string dodoId, string nickName, string channelId)
+        public static void StartTrade(string ps, string dodoId, string nickName, string channelId, string islandSourceId)
         {
             var _ = CheckAndGetPkm(ps, dodoId, out var msg, out var pkm);
             if (!_)
@@ -19,10 +19,10 @@ namespace SysBot.Pokemon.Dodo
                 return;
             }
 
-            StartTradeWithoutCheck(pkm, dodoId, nickName, channelId);
+            StartTradeWithoutCheck(pkm, dodoId, nickName, channelId, islandSourceId);
         }
 
-        public static void StartTrade(T pkm, string dodoId, string nickName, string channelId)
+        public static void StartTrade(T pkm, string dodoId, string nickName, string channelId, string islandSourceId)
         {
             var _ = CheckPkm(pkm, dodoId, out var msg);
             if (!_)
@@ -31,13 +31,13 @@ namespace SysBot.Pokemon.Dodo
                 return;
             }
 
-            StartTradeWithoutCheck(pkm, dodoId, nickName, channelId);
+            StartTradeWithoutCheck(pkm, dodoId, nickName, channelId, islandSourceId);
         }
 
-        public static void StartTradeWithoutCheck(T pkm, string dodoId, string nickName, string channelId)
+        public static void StartTradeWithoutCheck(T pkm, string dodoId, string nickName, string channelId, string islandSourceId)
         {
             var code = DodoBot<T>.Info.GetRandomTradeCode();
-            var __ = AddToTradeQueue(pkm, code, ulong.Parse(dodoId), nickName, channelId,
+            var __ = AddToTradeQueue(pkm, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId
                 PokeRoutineType.LinkTrade, out string message);
             DodoBot<T>.SendChannelMessage(message, channelId);
         }
@@ -161,7 +161,7 @@ namespace SysBot.Pokemon.Dodo
             return false;
         }
 
-        private static bool AddToTradeQueue(T pk, int code, ulong userId, string name, string channelId,
+        private static bool AddToTradeQueue(T pk, int code, ulong userId, string name, string channelId, string islandSourceId
             PokeRoutineType type, out string msg)
         {
             var trainer = new PokeTradeTrainerInfo(name, userId);
@@ -169,6 +169,7 @@ namespace SysBot.Pokemon.Dodo
             var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : (type == PokeRoutineType.Dump ? PokeTradeType.Dump : PokeTradeType.Specific);
             var detail =
                 new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, true);
+            detail.Context.Add("islandSourceId", islandSourceId);
             var trade = new TradeEntry<T>(detail, userId, type, name);
 
             var added = DodoBot<T>.Info.AddToTradeQueue(trade, userId, false);

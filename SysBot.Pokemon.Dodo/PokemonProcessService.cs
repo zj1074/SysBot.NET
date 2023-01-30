@@ -74,7 +74,7 @@ namespace SysBot.Pokemon.Dodo
                 var p = GetPKM(downloadBytes);
                 if (p is TP pkm)
                 {
-                    DodoHelper<TP>.StartTrade(pkm, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId);
+                    DodoHelper<TP>.StartTrade(pkm, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
                 }
 
                 return;
@@ -95,7 +95,7 @@ namespace SysBot.Pokemon.Dodo
             if (content.Trim().StartsWith("trade"))
             {
                 content = content.Replace("trade", "");
-                DodoHelper<TP>.StartTrade(content, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId);
+                DodoHelper<TP>.StartTrade(content, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
                 return;
             } 
             else if (content.Trim().StartsWith("dump"))
@@ -108,7 +108,7 @@ namespace SysBot.Pokemon.Dodo
             if (!string.IsNullOrWhiteSpace(ps))
             {
                 LogUtil.LogInfo($"收到命令\n{ps}", LogIdentity);
-                DodoHelper<TP>.StartTrade(ps, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId);
+                DodoHelper<TP>.StartTrade(ps, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
             }
             else if (content.Contains("取消"))
             {

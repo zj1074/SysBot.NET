@@ -1095,9 +1095,10 @@ namespace SysBot.Pokemon
             {
                 cln.PID = (((uint)(cln.TID16 ^ cln.SID16) ^ (cln.PID & 0xFFFF) ^ 1u) << 16) | (cln.PID & 0xFFFF);
             }
-
-            if (toSend.IsShiny)
+            else if (toSend.IsShiny)
+            {
                 cln.SetShiny();
+            }
 
             cln.RefreshChecksum();
 

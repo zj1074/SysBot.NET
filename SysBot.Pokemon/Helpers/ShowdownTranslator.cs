@@ -26,15 +26,16 @@ namespace SysBot.Pokemon
 
             if (candidateSpecieNo > 0)
             {
-                if (candidateSpecieNo == 29) result = "Nidoran-F";
-                else if (candidateSpecieNo == 32) result = "Nidoran-M";
+                if (candidateSpecieNo == (int)Species.NidoranF) result = "Nidoran-F";
+                else if (candidateSpecieNo == (int)Species.NidoranM) result = "Nidoran-M";
                 else result += GameStringsEn.Species[candidateSpecieNo];
 
                 zh = zh.Replace(GameStringsZh.Species[candidateSpecieNo], "");
 
                 // 特殊性别差异
                 // 29-尼多兰F，32-尼多朗M，678-超能妙喵F，876-爱管侍F，902-幽尾玄鱼F, 916-飘香豚
-                if ((candidateSpecieNo is 678 or 876 or 902 or 916) && zh.Contains("母")) result += "-F";
+                if (((Species)candidateSpecieNo is Species.Meowstic or Species.Indeedee or Species.Basculegion or Species.Oinkologne) 
+                    && zh.Contains("母")) result += "-F";
             }
             else
             {
@@ -341,7 +342,7 @@ namespace SysBot.Pokemon
                 }
             }
 
-            if (candidateSpecieNo == (int)Species.Ditto && zh.Contains("异国"))
+            if (zh.Contains("异国"))
             {
                 result += "\nLanguage: Italian";
                 zh = zh.Replace("异国", "");

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static SysBot.Base.SwitchButton;
 using static SysBot.Pokemon.PokeDataOffsetsSV;
+using System.Collections.Generic;
 
 namespace SysBot.Pokemon
 {
@@ -1075,12 +1076,12 @@ namespace SysBot.Pokemon
             // copied from https://github.com/Wanghaoran86/TransFireBot/commit/f7c5b39ce2952818177a97babb8b3df027e673fb
             if (toSend.Species == (ushort)Species.Koraidon)
             {
-                cln.Version = GameVersion.SL;
+                cln.Version = (int)GameVersion.SL;
                 Log("故勒顿，强制修改版本为朱");
             }
             else if (toSend.Species == (ushort)Species.Miraidon)
             {
-                cln.Version = GameVersion.VL;
+                cln.Version = (int)GameVersion.VL;
                 Log("密勒顿，强制修改版本为紫");
             } 
             else

@@ -351,7 +351,8 @@ namespace SysBot.Pokemon
                 return partnerCheck;
             }
 
-            if (Hub.Config.Legality.UseTradePartnerInfo)
+            var needUseTradePartnerInfo = poke.Context.GetValueOrDefault("异国", "false") == "false";
+            if (Hub.Config.Legality.UseTradePartnerInfo && needUseTradePartnerInfo)
             {
                 await SetBoxPkmWithSwappedIDDetailsSV(toSend, tradePartnerFullInfo, sav, token);
             }
@@ -1070,7 +1071,18 @@ namespace SysBot.Pokemon
             cln.TrainerSID7 = (uint)Math.Abs(tradePartner.DisplaySID);
             cln.Language = tradePartner.Language;
             cln.OT_Name = tradePartner.OT;
-            cln.Version = tradePartner.Game;
+            if (toSend.Species == Species.Koraidon)
+            {
+                cln.Version = GameVersion.SL;
+            }
+            else if (toSend.Species == Species.Miraidon)
+            {
+                cln.Version = GameVersion.VL;
+            } 
+            else
+            {
+                cln.Version = tradePartner.Game;
+            }
             cln.ClearNickname();
 
             if (toSend.IsShiny)

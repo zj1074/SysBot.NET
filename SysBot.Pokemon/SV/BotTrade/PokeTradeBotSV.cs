@@ -1071,19 +1071,29 @@ namespace SysBot.Pokemon
             cln.TrainerSID7 = (uint)Math.Abs(tradePartner.DisplaySID);
             cln.Language = tradePartner.Language;
             cln.OT_Name = tradePartner.OT;
-            if (toSend.Species == Species.Koraidon)
+            
+            // copied from https://github.com/Wanghaoran86/TransFireBot/commit/f7c5b39ce2952818177a97babb8b3df027e673fb
+            if (toSend.Species == (ushort)Species.Koraidon)
             {
                 cln.Version = GameVersion.SL;
+                Log("故勒顿，强制修改版本为朱");
             }
-            else if (toSend.Species == Species.Miraidon)
+            else if (toSend.Species == (ushort)Species.Miraidon)
             {
                 cln.Version = GameVersion.VL;
+                Log("密勒顿，强制修改版本为紫");
             } 
             else
             {
                 cln.Version = tradePartner.Game;
             }
             cln.ClearNickname();
+
+            // thanks @Wanghaoran86
+            if (toSend.Met_Location == Locations.TeraCavern9 && toSend.IsShiny)
+            {
+                cln.PID = (((uint)(cln.TID16 ^ cln.SID16) ^ (cln.PID & 0xFFFF) ^ 1u) << 16) | (cln.PID & 0xFFFF);
+            }
 
             if (toSend.IsShiny)
                 cln.SetShiny();

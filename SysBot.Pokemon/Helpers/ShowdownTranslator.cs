@@ -323,6 +323,12 @@ namespace SysBot.Pokemon
                 zh = zh.Replace("-" + GameStringsZh.Move[candidateIndex], "");
             }
 
+            // 补充后天获得的全奖章 注意开启Legality=>AllowBatchCommands
+            if (typeof(T) == typeof(PK9) && zh.Contains("全奖章"))
+            {
+                result += "\n.Ribbons=$suggestAll\n.RibbonMarkPartner=True\n.RibbonMarkGourmand=True";
+                zh = zh.Replace("全奖章", "");
+            }
             // 体型大小并添加证章
             if (typeof(T) == typeof(PK9) && zh.Contains("大个子"))
             {
@@ -350,7 +356,7 @@ namespace SysBot.Pokemon
                     zh = zh.Replace("全招式", "");
                 }
             }
-            if (typeof(T) == typeof(PA8))
+            else if (typeof(T) == typeof(PA8))
             {
                 if (zh.Contains("全技能"))
                 {

@@ -45,7 +45,7 @@ namespace SysBot.Pokemon
         public bool IsProcessing;
 
         /// <summary> Customized trade parameters. </summary>
-        public Dictionary<string, string> Context = new();
+        public Dictionary<string, object> Context = new();
 
         public PokeTradeDetail(TPoke pkm, PokeTradeTrainerInfo info, IPokeTradeNotifier<TPoke> notifier, PokeTradeType type, int code, bool favored = false)
         {

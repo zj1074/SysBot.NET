@@ -1,6 +1,7 @@
 ﻿using PKHeX.Core;
 using SysBot.Base;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -42,6 +43,10 @@ namespace SysBot.Pokemon.Dodo
                 DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), $"找到你了，你的SID7:{sid},TID7:{tid}",
                     IslandSourceId);
             }
+            else if (message.StartsWith("批量"))
+            {
+                DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), message, IslandSourceId);
+            }
         }
 
         public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg)
@@ -71,6 +76,11 @@ namespace SysBot.Pokemon.Dodo
             msg += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(msg);
             var text = $"\n派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:见私信\n状态:初始化";
+            List<PK9> batchPK9s = (List<PK9>)info.Context.GetValueOrDefault("批量", new List<PK9>());
+            if (batchPK9s.Count > 0)
+            {
+                text = $"\n批量派送{batchPK9s.Count}只宝可梦\n密码:见私信\n状态:初始化";
+            }
             DodoBot<T>.SendChannelAtMessage(info.Trainer.ID, text, ChannelId);
             DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(),
                 $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}",

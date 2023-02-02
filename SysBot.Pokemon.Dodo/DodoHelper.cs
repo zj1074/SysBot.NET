@@ -35,6 +35,45 @@ namespace SysBot.Pokemon.Dodo
             StartTradeWithoutCheck(pkm, dodoId, nickName, channelId, islandSourceId);
         }
 
+        public static void StartTradeMulti(string chinesePsRaw, string dodoId, string nickName, string channelId, string islandSourceId)
+        {
+            var chinesePss = chinesePsRaw.Split('+').ToList();
+            List<string> msgs = new List<string>();
+            List<T> pkms = new List<T>();
+            List<bool> foreignList = new List<bool>();
+            int invalidCount = 0;
+            for (var i = 0; i < chinesePss.Count; i++)
+            {
+                var ps = ShowdownTranslator<T>.Chinese2Showdown(chinesePss[i]);
+                var _ = CheckAndGetPkm(ps, dodoId, out var msg, out var pkm);
+                if (!_)
+                {
+                    LogUtil.LogInfo($"批量第{i+1}只宝可梦有问题:{msg}", nameof(DodoHelper<T>));
+                    invalidCount++;
+                }
+                else
+                {
+                    LogUtil.LogInfo($"批量第{i+1}只:\n{ps}", nameof(DodoHelper<T>));
+                    foreignList.Add(ps.Contains("Language: "));
+                    pkms.Add(pkm);
+                }
+            }
+            if (invalidCount == chinesePss.Count)
+            {
+                DodoBot<T>.SendChannelMessage("一个都不合法，换个屁", channelId);
+                return;
+            } 
+            else if (invalidCount != 0)
+            {
+                DodoBot<T>.SendChannelMessage($"期望交换的{chinesePss.Count}只宝可梦中，有{invalidCount}只不合法，仅交换合法的{pkms.Count}只", channelId);
+            }
+
+            var code = DodoBot<T>.Info.GetRandomTradeCode();
+            var __ = AddToTradeQueue(pkms, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId, foreignList,
+                PokeRoutineType.LinkTrade, out string message);
+            DodoBot<T>.SendChannelMessage(message, channelId);
+        }
+
         public static void StartTradeWithoutCheck(T pkm, string dodoId, string nickName, string channelId, string islandSourceId, bool foreign = false)
         {
             var code = DodoBot<T>.Info.GetRandomTradeCode();
@@ -165,14 +204,22 @@ namespace SysBot.Pokemon.Dodo
         private static bool AddToTradeQueue(T pk, int code, ulong userId, string name, string channelId, string islandSourceId, bool foreign,
             PokeRoutineType type, out string msg)
         {
+            return AddToTradeQueue(new List<T> { pk }, code, userId, name, channelId, islandSourceId, new List<bool>{ foreign }, type, out msg);
+        }
+
+        private static bool AddToTradeQueue(List<T> pks, int code, ulong userId, string name, string channelId, string islandSourceId, List<bool> foreignList,
+            PokeRoutineType type, out string msg)
+        {
+            T pk = pks.FirstOrDefault();
             var trainer = new PokeTradeTrainerInfo(name, userId);
             var notifier = new DodoTradeNotifier<T>(pk, trainer, code, name, channelId, islandSourceId);
             var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : (type == PokeRoutineType.Dump ? PokeTradeType.Dump : PokeTradeType.Specific);
             var detail =
                 new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, true);
-            if (foreign)
+            detail.Context.Add("异国", foreignList);
+            if (pks.Count > 0)
             {
-                detail.Context.Add("异国", "true");
+                detail.Context.Add("批量", pks);
             }
             var trade = new TradeEntry<T>(detail, userId, type, name);
 

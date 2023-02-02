@@ -38,6 +38,17 @@ namespace SysBot.Pokemon.Dodo
         public static void StartTradeMulti(string chinesePsRaw, string dodoId, string nickName, string channelId, string islandSourceId)
         {
             var chinesePss = chinesePsRaw.Split('+').ToList();
+            var maxQuantityPerTrade = DodoBot<T>.Info.Hub.Config.Trade.MaxQuantityPerTrade;
+            if (maxQuantityPerTrade == 0)
+            {
+                DodoBot<T>.SendChannelMessage("批量未开启", channelId);
+                return;
+            }
+            else if (chinesePss.Count > maxQuantityPerTrade) 
+            {
+                DodoBot<T>.SendChannelMessage($"批量交换宝可梦数量应小于等于{maxQuantityPerTrade}", channelId);
+                return;
+            }
             List<string> msgs = new List<string>();
             List<T> pkms = new List<T>();
             List<bool> foreignList = new List<bool>();

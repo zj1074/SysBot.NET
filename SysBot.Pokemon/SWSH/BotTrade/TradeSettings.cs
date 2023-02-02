@@ -38,6 +38,8 @@ namespace SysBot.Pokemon
         [Category(TradeConfig), Description("When enabled, the screen will be turned off during normal bot loop operation to save power.")]
         public bool ScreenOff { get; set; }
 
+        [Category(TradeCode), Description("Maximum quantity per trade when using batch mode. Batch mode will be closed if this configuration is zero")]
+        public int MaxQuantityPerTrade { get; set; } = 0;
         /// <summary>
         /// Gets a random trade code based on the range settings.
         /// </summary>

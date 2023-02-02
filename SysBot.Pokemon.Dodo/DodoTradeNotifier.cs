@@ -77,7 +77,7 @@ namespace SysBot.Pokemon.Dodo
             LogUtil.LogText(msg);
             var text = $"\n派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:见私信\n状态:初始化";
             List<PK9> batchPK9s = (List<PK9>)info.Context.GetValueOrDefault("批量", new List<PK9>());
-            if (batchPK9s.Count > 0)
+            if (batchPK9s.Count > 1)
             {
                 text = $"\n批量派送{batchPK9s.Count}只宝可梦\n密码:见私信\n状态:初始化";
             }

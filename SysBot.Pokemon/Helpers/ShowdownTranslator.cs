@@ -301,6 +301,28 @@ namespace SysBot.Pokemon
                 }
             }
 
+            // 添加技能
+            for (int moveCount = 0; moveCount < 4; moveCount++)
+            {
+                int candidateIndex = -1;
+                int candidateLength = 0;
+                for (int i = 0; i < GameStringsZh.Move.Count; i++)
+                {
+                    if (GameStringsZh.Move[i].Length == 0) continue;
+                    if (!zh.Contains("-" + GameStringsZh.Move[i])) continue;
+                    // 吸取 吸取拳
+                    if (candidateIndex == -1 || GameStringsZh.Move[i].Length > candidateLength)
+                    {
+                        candidateIndex = i;
+                        candidateLength = GameStringsZh.Move[i].Length;
+                    }
+                }
+                if (candidateIndex == -1) continue;
+
+                result += $"\n-{GameStringsEn.Move[candidateIndex]}";
+                zh = zh.Replace("-" + GameStringsZh.Move[candidateIndex], "");
+            }
+
             // 体型大小并添加证章
             if (typeof(T) == typeof(PK9) && zh.Contains("大个子"))
             {

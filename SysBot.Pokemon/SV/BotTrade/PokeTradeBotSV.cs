@@ -379,7 +379,7 @@ namespace SysBot.Pokemon
                 var needUseTradePartnerInfo = !foreignList[i];
                 if (Hub.Config.Legality.UseTradePartnerInfo && needUseTradePartnerInfo)
                 {
-                    await SetBoxPkmWithSwappedIDDetailsSV(toSend, tradePartnerFullInfo, sav, token);
+                    await SetBoxPkmWithSwappedIDDetailsSV(pk9, tradePartnerFullInfo, sav, token);
                 }
                 else if (pk9.Species != 0)
                 {

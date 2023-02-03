@@ -370,7 +370,8 @@ namespace SysBot.Pokemon
                 return result;
             }
             List<PK9> batchPK9s = (List<PK9>)poke.Context.GetValueOrDefault("批量", new List<PK9> { toSend });
-            List<bool> foreignList = (List<bool>)poke.Context.GetValueOrDefault("异国", new List<bool>());
+            List<bool> foreignList = (List<bool>)poke.Context.GetValueOrDefault("异国", new List<bool> { false });
+            LogUtil.LogInfo($"count:{batchPK9s.Count}, foreignList:{String.Join(',', foreignList)}", nameof(PokeTradeBotSV));
             for (var i = 0; i < batchPK9s.Count; i++)
             {
                 var pk9 = batchPK9s[i];
@@ -411,6 +412,7 @@ namespace SysBot.Pokemon
                     await ExitTradeToPortal(false, token).ConfigureAwait(false);
                     return tradeResult;
                 }
+                if (batchPK9s.Count > 1) poke.SendNotification(this, $"批量:第{i + 1}个宝可梦{ShowdownTranslator<PK9>.GameStringsZh.Species[pk9.Species]}交换完成");
 
                 if (token.IsCancellationRequested)
                 {
@@ -419,27 +421,26 @@ namespace SysBot.Pokemon
                     await ExitTradeToPortal(false, token).ConfigureAwait(false);
                     return PokeTradeResult.RoutineCancel;
                 }
-
-                // Trade was Successful!
-                var received = await ReadPokemon(BoxStartOffset, BoxFormatSlotSize, token).ConfigureAwait(false);
-                // Pokémon in b1s1 is same as the one they were supposed to receive (was never sent).
-                if (SearchUtil.HashByDetails(received) == SearchUtil.HashByDetails(toSend) && received.Checksum == toSend.Checksum)
-                {
-                    Log("User did not complete the trade.");
-                    await ExitTradeToPortal(false, token).ConfigureAwait(false);
-                    return PokeTradeResult.TrainerTooSlow;
-                }
-
-                // As long as we got rid of our inject in b1s1, assume the trade went through.
-                Log("User completed the trade.");
-                poke.TradeFinished(this, received);
-
-                // Only log if we completed the trade.
-                UpdateCountsAndExport(poke, received, toSend);
-
-                // Sometimes they offered another mon, so store that immediately upon leaving Union Room.
-                lastOffered = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);
             }
+            // Trade was Successful!
+            var received = await ReadPokemon(BoxStartOffset, BoxFormatSlotSize, token).ConfigureAwait(false);
+            // Pokémon in b1s1 is same as the one they were supposed to receive (was never sent).
+            if (SearchUtil.HashByDetails(received) == SearchUtil.HashByDetails(toSend) && received.Checksum == toSend.Checksum)
+            {
+                Log("User did not complete the trade.");
+                await ExitTradeToPortal(false, token).ConfigureAwait(false);
+                return PokeTradeResult.TrainerTooSlow;
+            }
+            
+            // As long as we got rid of our inject in b1s1, assume the trade went through.
+            Log("User completed the trade.");
+            poke.TradeFinished(this, received);
+
+            // Only log if we completed the trade.
+            UpdateCountsAndExport(poke, received, toSend);
+
+            // Sometimes they offered another mon, so store that immediately upon leaving Union Room.
+            lastOffered = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);
             
             await ExitTradeToPortal(false, token).ConfigureAwait(false);
             return PokeTradeResult.Success;

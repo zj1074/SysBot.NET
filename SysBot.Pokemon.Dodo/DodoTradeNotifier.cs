@@ -45,7 +45,7 @@ namespace SysBot.Pokemon.Dodo
             }
             else if (message.StartsWith("批量"))
             {
-                DodoBot<T>.SendPersonalMessage(info.Trainer.ID.ToString(), message, IslandSourceId);
+                DodoBot<T>.SendChannelMessage(message, ChannelId);
             }
         }
 

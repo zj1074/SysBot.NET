@@ -50,6 +50,8 @@ Most codes are based on [SysBot.Pokemon.Twitch](https://github.com/kwsch/SysBot.
 
 Uses [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) as a dependency via Nuget.
 
+Document: [搭建指南](https://github.com/easyworld/SysBot.NET/tree/master/SysBot.Pokemon.QQ), [命令指南](https://docs.qq.com/doc/DSVlldkxMSW92VXZF)
+
 ## SysBot.Pokemon.Dodo:
 - Support [ALM-Showdown-Sets](https://github.com/architdate/PKHeX-Plugins/wiki/ALM-Showdown-Sets)
 - Support PK8 PB8 PA8 PK9 file upload
@@ -58,6 +60,8 @@ Uses [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) as a dependency via Nuge
 Most codes are based on [SysBot.Pokemon.Twitch](https://github.com/kwsch/SysBot.NET/tree/master/SysBot.Pokemon.Twitch)
 
 Uses [dodo-open-net](https://github.com/dodo-open/dodo-open-net) as a dependency via Nuget.
+
+Document: [搭建指南](https://docs.qq.com/doc/DSVVZZk9saUNTeHNn), [命令指南](https://docs.qq.com/doc/DSVlldkxMSW92VXZF)
 
 ## Other Dependencies
 Pokémon API logic is provided by [PKHeX](https://github.com/kwsch/PKHeX/), and template generation is provided by [AutoMod](https://github.com/architdate/PKHeX-Plugins/).

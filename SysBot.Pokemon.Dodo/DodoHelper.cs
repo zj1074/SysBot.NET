@@ -76,10 +76,6 @@ namespace SysBot.Pokemon.Dodo
             {
                 DodoBot<T>.SendChannelMessage($"期望交换的{chinesePss.Count}只宝可梦中，有{invalidCount}只不合法，仅交换合法的{pkms.Count}只", channelId);
             }
-            else
-            {
-                DodoBot<T>.SendChannelMessage($"开始批量交换{pkms.Count}只宝可梦", channelId);
-            }
 
             var code = DodoBot<T>.Info.GetRandomTradeCode();
             var __ = AddToTradeQueue(pkms, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId, foreignList,

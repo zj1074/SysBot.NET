@@ -17,7 +17,7 @@ namespace SysBot.Pokemon.Dodo
         private static readonly string LogIdentity = "DodoBot";
         private static readonly string Welcome = "at我并尝试对我说：\n皮卡丘\ntrade ps代码\n或者直接拖一个文件进来";
         private readonly string _channelId;
-        private string _botDodoSourceId;
+        private string _botDodoSourceId = default!;
 
         public PokemonProcessService(OpenApiService openApiService, string channelId)
         {
@@ -179,12 +179,12 @@ namespace SysBot.Pokemon.Dodo
                     || typeof(TP) == typeof(PK9) && fileName.EndsWith("pk9", StringComparison.OrdinalIgnoreCase));
         }
 
-        private static PKM GetPKM(byte[] bytes)
+        private static PKM? GetPKM(byte[] bytes)
         {
             if (typeof(TP) == typeof(PK8)) return new PK8(bytes);
-            if (typeof(TP) == typeof(PB8)) return new PB8(bytes);
-            if (typeof(TP) == typeof(PA8)) return new PA8(bytes);
-            if (typeof(TP) == typeof(PK9)) return new PK9(bytes);
+            else if (typeof(TP) == typeof(PB8)) return new PB8(bytes);
+            else if (typeof(TP) == typeof(PA8)) return new PA8(bytes);
+            else if (typeof(TP) == typeof(PK9)) return new PK9(bytes);
             return null;
         }
 

@@ -29,7 +29,7 @@ namespace SysBot.Pokemon.Dodo
             LogUtil.LogText($"Created trade details for {Username} - {Code}");
         }
 
-        public Action<PokeRoutineExecutor<T>> OnFinish { private get; set; }
+        public Action<PokeRoutineExecutor<T>>? OnFinish { private get; set; }
 
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, string message)
         {

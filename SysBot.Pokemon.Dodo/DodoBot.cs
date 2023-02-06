@@ -15,9 +15,9 @@ namespace SysBot.Pokemon.Dodo
         private static PokeTradeHub<T> Hub = default!;
         internal static TradeQueueInfo<T> Info => Hub.Queues.Info;
 
-        public static OpenApiService OpenApiService;
+        public static OpenApiService OpenApiService = default!;
 
-        private static DodoSettings Settings;
+        private static DodoSettings Settings = default!;
 
         public DodoBot(DodoSettings settings, PokeTradeHub<T> hub)
         {
@@ -101,7 +101,7 @@ namespace SysBot.Pokemon.Dodo
             if (string.IsNullOrEmpty(message)) return;
             if (string.IsNullOrWhiteSpace(islandSourceId))
             {
-                islandSourceId = OpenApiService.GetIslandList(new GetIslandListInput()).FirstOrDefault().IslandSourceId ?? "";
+                islandSourceId = OpenApiService.GetIslandList(new GetIslandListInput()).FirstOrDefault()?.IslandSourceId ?? "";
             }
             OpenApiService.SetPersonalMessageSend(new SetPersonalMessageSendInput<MessageBodyText>
             {

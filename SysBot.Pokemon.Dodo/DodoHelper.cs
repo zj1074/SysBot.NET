@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using PKHeX.Core;
 using SysBot.Base;
 
@@ -38,20 +36,20 @@ namespace SysBot.Pokemon.Dodo
         public static void StartTradeMulti(string chinesePsRaw, string dodoId, string nickName, string channelId, string islandSourceId)
         {
             var chinesePss = chinesePsRaw.Split('+').ToList();
-            var maxQuantityPerTrade = DodoBot<T>.Info.Hub.Config.Trade.MaxQuantityPerTrade;
-            if (maxQuantityPerTrade == 0)
+            var MaxPkmsPerTrade = DodoBot<T>.Info.Hub.Config.Trade.MaxPkmsPerTrade;
+            if (MaxPkmsPerTrade <= 1)
             {
-                DodoBot<T>.SendChannelMessage("批量未开启", channelId);
+                DodoBot<T>.SendChannelMessage("请联系群主将trade/MaxPkmsPerTrade配置改为大于1", channelId);
                 return;
             }
-            else if (chinesePss.Count > maxQuantityPerTrade) 
+            else if (chinesePss.Count > MaxPkmsPerTrade) 
             {
-                DodoBot<T>.SendChannelMessage($"批量交换宝可梦数量应小于等于{maxQuantityPerTrade}", channelId);
+                DodoBot<T>.SendChannelMessage($"批量交换宝可梦数量应小于等于{MaxPkmsPerTrade}", channelId);
                 return;
             }
-            List<string> msgs = new List<string>();
-            List<T> pkms = new List<T>();
-            List<bool> foreignList = new List<bool>();
+            List<string> msgs = new();
+            List<T> pkms = new();
+            List<bool> foreignList = new();
             int invalidCount = 0;
             for (var i = 0; i < chinesePss.Count; i++)
             {
@@ -221,7 +219,12 @@ namespace SysBot.Pokemon.Dodo
         private static bool AddToTradeQueue(List<T> pks, int code, ulong userId, string name, string channelId, string islandSourceId, List<bool> foreignList,
             PokeRoutineType type, out string msg)
         {
-            T pk = pks.FirstOrDefault();
+            if (pks == null || pks.Count == 0)
+            {
+                msg = $"宝可梦数据为空";
+                return false;
+            }
+            T pk = pks.First();
             var trainer = new PokeTradeTrainerInfo(name, userId);
             var notifier = new DodoTradeNotifier<T>(pk, trainer, code, name, channelId, islandSourceId);
             var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : (type == PokeRoutineType.Dump ? PokeTradeType.Dump : PokeTradeType.Specific);

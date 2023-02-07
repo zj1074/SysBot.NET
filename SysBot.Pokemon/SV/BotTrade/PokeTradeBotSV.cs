@@ -376,6 +376,10 @@ namespace SysBot.Pokemon
             for (var i = 0; i < batchPK9s.Count; i++)
             {
                 var pk9 = batchPK9s[i];
+                if (i > 0 && pk9.Species != 0)
+                {
+                    await SetBoxPokemonAbsolute(BoxStartOffset, pk9, token, sav).ConfigureAwait(false);
+                }
                 if (batchPK9s.Count > 1) poke.SendNotification(this, $"批量:等待交换第{i+1}个宝可梦{ShowdownTranslator<PK9>.GameStringsZh.Species[pk9.Species]}");
                 
                 var needUseTradePartnerInfo = !foreignList[i];
@@ -383,10 +387,7 @@ namespace SysBot.Pokemon
                 {
                     await SetBoxPkmWithSwappedIDDetailsSV(pk9, tradePartnerFullInfo, sav, token);
                 }
-                else if (pk9.Species != 0)
-                {
-                    await SetBoxPokemonAbsolute(BoxStartOffset, pk9, token, sav).ConfigureAwait(false);
-                }
+                
                 // Wait for user input...
                 var offered = await ReadUntilPresent(TradePartnerOfferedOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
                 var oldEC = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);

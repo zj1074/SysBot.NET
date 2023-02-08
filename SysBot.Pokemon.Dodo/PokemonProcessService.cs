@@ -103,9 +103,9 @@ namespace SysBot.Pokemon.Dodo
                 DodoHelper<TP>.StartDump(eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId);
                 return;
             }
-            else if (typeof(TP) == typeof(PK9) && content.Trim().StartsWith("批量"))// 仅SV支持批量，其他偷懒还没写
+            else if (typeof(TP) == typeof(PK9) && content.Trim().Contains("+"))// 仅SV支持批量，其他偷懒还没写
             {
-                DodoHelper<TP>.StartTradeMulti(content.Replace("批量", "").Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                DodoHelper<TP>.StartTradeMulti(content.Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
                 return;
             }
 

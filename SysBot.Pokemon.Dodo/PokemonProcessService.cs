@@ -105,7 +105,12 @@ namespace SysBot.Pokemon.Dodo
             }
             else if (typeof(TP) == typeof(PK9) && content.Trim().Contains("+"))// 仅SV支持批量，其他偷懒还没写
             {
-                DodoHelper<TP>.StartTradeMulti(content.Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                DodoHelper<TP>.StartTradeMultiChinese(content.Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                return;
+            }
+            else if (typeof(TP) == typeof(PK9) && content.Trim().Contains("队伍"))// 仅SV支持批量，其他偷懒还没写
+            {
+                DodoHelper<TP>.StartTradeMultiPs(content.Replace("队伍", "").Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
                 return;
             }
 

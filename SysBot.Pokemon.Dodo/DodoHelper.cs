@@ -33,7 +33,7 @@ namespace SysBot.Pokemon.Dodo
             StartTradeWithoutCheck(pkm, dodoId, nickName, channelId, islandSourceId);
         }
 
-        public static void StartTradeMulti(string chinesePsRaw, string dodoId, string nickName, string channelId, string islandSourceId)
+        public static void StartTradeMultiChinese(string chinesePsRaw, string dodoId, string nickName, string channelId, string islandSourceId)
         {
             var chinesePss = chinesePsRaw.Split('+').ToList();
             var MaxPkmsPerTrade = DodoBot<T>.Info.Hub.Config.Trade.MaxPkmsPerTrade;
@@ -75,6 +75,56 @@ namespace SysBot.Pokemon.Dodo
             else if (invalidCount != 0)
             {
                 DodoBot<T>.SendChannelMessage($"期望交换的{chinesePss.Count}只宝可梦中，有{invalidCount}只不合法，仅交换合法的{pkms.Count}只", channelId);
+            }
+
+            var code = DodoBot<T>.Info.GetRandomTradeCode();
+            var __ = AddToTradeQueue(pkms, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId, foreignList,
+                PokeRoutineType.LinkTrade, out string message);
+            DodoBot<T>.SendChannelMessage(message, channelId);
+        }
+
+        public static void StartTradeMultiPs(string pssRaw, string dodoId, string nickName, string channelId, string islandSourceId)
+        {
+            var psArray = pssRaw.Split("\n\n").ToList();
+            var MaxPkmsPerTrade = DodoBot<T>.Info.Hub.Config.Trade.MaxPkmsPerTrade;
+            if (MaxPkmsPerTrade <= 1)
+            {
+                DodoBot<T>.SendChannelMessage("请联系群主将trade/MaxPkmsPerTrade配置改为大于1", channelId);
+                return;
+            }
+            else if (psArray.Count > MaxPkmsPerTrade)
+            {
+                DodoBot<T>.SendChannelMessage($"批量交换宝可梦数量应小于等于{MaxPkmsPerTrade}", channelId);
+                return;
+            }
+            List<string> msgs = new();
+            List<T> pkms = new();
+            List<bool> foreignList = new();
+            int invalidCount = 0;
+            for (var i = 0; i < psArray.Count; i++)
+            {
+                var ps = psArray[i];
+                var _ = CheckAndGetPkm(ps, dodoId, out var msg, out var pkm);
+                if (!_)
+                {
+                    LogUtil.LogInfo($"批量第{i + 1}只宝可梦有问题:{msg}", nameof(DodoHelper<T>));
+                    invalidCount++;
+                }
+                else
+                {
+                    LogUtil.LogInfo($"批量第{i + 1}只:\n{ps}", nameof(DodoHelper<T>));
+                    foreignList.Add(ps.Contains("Language: "));
+                    pkms.Add(pkm);
+                }
+            }
+            if (invalidCount == psArray.Count)
+            {
+                DodoBot<T>.SendChannelMessage("一个都不合法，换个屁", channelId);
+                return;
+            }
+            else if (invalidCount != 0)
+            {
+                DodoBot<T>.SendChannelMessage($"期望交换的{psArray.Count}只宝可梦中，有{invalidCount}只不合法，仅交换合法的{pkms.Count}只", channelId);
             }
 
             var code = DodoBot<T>.Info.GetRandomTradeCode();

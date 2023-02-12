@@ -387,7 +387,18 @@ namespace SysBot.Pokemon
                 {
                     await SetBoxPkmWithSwappedIDDetailsSV(pk9, tradePartnerFullInfo, sav, token);
                 }
-                
+
+                if (i > 0) 
+                {
+                    tradeOffered = await ReadUntilChanged(TradePartnerOfferedOffset, lastOffered, 25_000, 0_500, false, true, token).ConfigureAwait(false);
+                    if (!tradeOffered)
+                    {
+                        await ExitTradeToPortal(false, token).ConfigureAwait(false);
+                        return PokeTradeResult.TrainerTooSlow;
+                    }
+                    
+                }
+
                 // Wait for user input...
                 var offered = await ReadUntilPresent(TradePartnerOfferedOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
                 var oldEC = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);
@@ -436,6 +447,7 @@ namespace SysBot.Pokemon
 
                 // Only log if we completed the trade.
                 UpdateCountsAndExport(poke, received, pk9);
+                lastOffered = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);
             }
             
             // As long as we got rid of our inject in b1s1, assume the trade went through.

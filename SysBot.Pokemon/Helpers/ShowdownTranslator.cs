@@ -301,28 +301,6 @@ namespace SysBot.Pokemon
                 }
             }
 
-            // 添加技能
-            for (int moveCount = 0; moveCount < 4; moveCount++)
-            {
-                int candidateIndex = -1;
-                int candidateLength = 0;
-                for (int i = 0; i < GameStringsZh.Move.Count; i++)
-                {
-                    if (GameStringsZh.Move[i].Length == 0) continue;
-                    if (!zh.Contains("-" + GameStringsZh.Move[i])) continue;
-                    // 吸取 吸取拳
-                    if (candidateIndex == -1 || GameStringsZh.Move[i].Length > candidateLength)
-                    {
-                        candidateIndex = i;
-                        candidateLength = GameStringsZh.Move[i].Length;
-                    }
-                }
-                if (candidateIndex == -1) continue;
-
-                result += $"\n-{GameStringsEn.Move[candidateIndex]}";
-                zh = zh.Replace("-" + GameStringsZh.Move[candidateIndex], "");
-            }
-
             // 补充后天获得的全奖章 注意开启Legality=>AllowBatchCommands
             if (typeof(T) == typeof(PK9) && zh.Contains("全奖章"))
             {
@@ -370,10 +348,37 @@ namespace SysBot.Pokemon
                 }
             }
 
-            if (zh.Contains("异国"))
+            if (zh.Contains("异国")) { result += "\nLanguage: Italian"; zh = zh.Replace("异国", ""); }
+            else if (zh.Contains("日语")) { result += "\nLanguage: Japanese"; zh = zh.Replace("日语", ""); }
+            else if (zh.Contains("英语")) { result += "\nLanguage: English"; zh = zh.Replace("英语", ""); }
+            else if (zh.Contains("法语")) { result += "\nLanguage: French"; zh = zh.Replace("法语", ""); }
+            else if (zh.Contains("意大利语")) { result += "\nLanguage: Italian"; zh = zh.Replace("意大利语", ""); }
+            else if (zh.Contains("德语")) { result += "\nLanguage: German"; zh = zh.Replace("德语", ""); }
+            else if (zh.Contains("西班牙语")) { result += "\nLanguage: Spanish"; zh = zh.Replace("西班牙语", ""); }
+            else if (zh.Contains("韩语")) { result += "\nLanguage: Korean"; zh = zh.Replace("韩语", ""); }
+            else if (zh.Contains("简体中文")) { result += "\nLanguage: ChineseS"; zh = zh.Replace("简体中文", ""); }
+            else if (zh.Contains("繁体中文")) { result += "\nLanguage: ChineseT"; zh = zh.Replace("繁体中文", ""); }
+
+            // 添加技能 原因：PKHeX.Core.ShowdownSet#ParseLines中，若招式数满足4个则不再解析，所以招式文本应放在最后
+            for (int moveCount = 0; moveCount < 4; moveCount++)
             {
-                result += "\nLanguage: Italian";
-                zh = zh.Replace("异国", "");
+                int candidateIndex = -1;
+                int candidateLength = 0;
+                for (int i = 0; i < GameStringsZh.Move.Count; i++)
+                {
+                    if (GameStringsZh.Move[i].Length == 0) continue;
+                    if (!zh.Contains("-" + GameStringsZh.Move[i])) continue;
+                    // 吸取 吸取拳
+                    if (candidateIndex == -1 || GameStringsZh.Move[i].Length > candidateLength)
+                    {
+                        candidateIndex = i;
+                        candidateLength = GameStringsZh.Move[i].Length;
+                    }
+                }
+                if (candidateIndex == -1) continue;
+
+                result += $"\n-{GameStringsEn.Move[candidateIndex]}";
+                zh = zh.Replace("-" + GameStringsZh.Move[candidateIndex], "");
             }
 
             return result;

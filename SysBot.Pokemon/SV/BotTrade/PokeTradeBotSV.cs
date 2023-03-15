@@ -369,10 +369,10 @@ namespace SysBot.Pokemon
                 await ExitTradeToPortal(false, token).ConfigureAwait(false);
                 return result;
             }
-            List<PK9> batchPK9s = (List<PK9>)poke.Context.GetValueOrDefault("批量", new List<PK9> { toSend });
-            List<bool> foreignList = (List<bool>)poke.Context.GetValueOrDefault("异国", new List<bool> { false });
+            List<PK9> batchPK9s = (List<PK9>)poke.Context.GetValueOrDefault("batch", new List<PK9> { toSend });
+            List<bool> skipAutoOTList = (List<bool>)poke.Context.GetValueOrDefault("skipAutoOTList", new List<bool> { false });
             PK9 received = default!;
-            LogUtil.LogInfo($"count:{batchPK9s.Count}, foreignList:{String.Join(',', foreignList)}", nameof(PokeTradeBotSV));
+            LogUtil.LogInfo($"count:{batchPK9s.Count}, skipAutoOTList:{String.Join(',', skipAutoOTList)}", nameof(PokeTradeBotSV));
             for (var i = 0; i < batchPK9s.Count; i++)
             {
                 var pk9 = batchPK9s[i];
@@ -382,7 +382,7 @@ namespace SysBot.Pokemon
                 }
                 if (batchPK9s.Count > 1) poke.SendNotification(this, $"批量:等待交换第{i+1}个宝可梦{ShowdownTranslator<PK9>.GameStringsZh.Species[pk9.Species]}");
                 
-                var needUseTradePartnerInfo = !foreignList[i];
+                var needUseTradePartnerInfo = !skipAutoOTList[i];
                 if (Hub.Config.Legality.UseTradePartnerInfo && needUseTradePartnerInfo)
                 {
                     await SetBoxPkmWithSwappedIDDetailsSV(pk9, tradePartnerFullInfo, sav, token);

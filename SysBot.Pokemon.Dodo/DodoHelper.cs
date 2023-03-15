@@ -49,7 +49,7 @@ namespace SysBot.Pokemon.Dodo
             }
             List<string> msgs = new();
             List<T> pkms = new();
-            List<bool> foreignList = new();
+            List<bool> skipAutoOTList = new();
             int invalidCount = 0;
             for (var i = 0; i < chinesePss.Count; i++)
             {
@@ -63,7 +63,7 @@ namespace SysBot.Pokemon.Dodo
                 else
                 {
                     LogUtil.LogInfo($"批量第{i+1}只:\n{ps}", nameof(DodoHelper<T>));
-                    foreignList.Add(ps.Contains("Language: "));
+                    skipAutoOTList.Add(ps.Contains("Language: "));
                     pkms.Add(pkm);
                 }
             }
@@ -78,7 +78,7 @@ namespace SysBot.Pokemon.Dodo
             }
 
             var code = DodoBot<T>.Info.GetRandomTradeCode();
-            var __ = AddToTradeQueue(pkms, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId, foreignList,
+            var __ = AddToTradeQueue(pkms, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId, skipAutoOTList,
                 PokeRoutineType.LinkTrade, out string message);
             DodoBot<T>.SendChannelMessage(message, channelId);
         }
@@ -99,7 +99,7 @@ namespace SysBot.Pokemon.Dodo
             }
             List<string> msgs = new();
             List<T> pkms = new();
-            List<bool> foreignList = new();
+            List<bool> skipAutoOTList = new();
             int invalidCount = 0;
             for (var i = 0; i < psArray.Count; i++)
             {
@@ -113,7 +113,7 @@ namespace SysBot.Pokemon.Dodo
                 else
                 {
                     LogUtil.LogInfo($"批量第{i + 1}只:\n{ps}", nameof(DodoHelper<T>));
-                    foreignList.Add(ps.Contains("Language: "));
+                    skipAutoOTList.Add(ps.Contains("Language: "));
                     pkms.Add(pkm);
                 }
             }
@@ -128,7 +128,7 @@ namespace SysBot.Pokemon.Dodo
             }
 
             var code = DodoBot<T>.Info.GetRandomTradeCode();
-            var __ = AddToTradeQueue(pkms, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId, foreignList,
+            var __ = AddToTradeQueue(pkms, code, ulong.Parse(dodoId), nickName, channelId, islandSourceId, skipAutoOTList,
                 PokeRoutineType.LinkTrade, out string message);
             DodoBot<T>.SendChannelMessage(message, channelId);
         }
@@ -266,7 +266,7 @@ namespace SysBot.Pokemon.Dodo
             return AddToTradeQueue(new List<T> { pk }, code, userId, name, channelId, islandSourceId, new List<bool>{ foreign }, type, out msg);
         }
 
-        private static bool AddToTradeQueue(List<T> pks, int code, ulong userId, string name, string channelId, string islandSourceId, List<bool> foreignList,
+        private static bool AddToTradeQueue(List<T> pks, int code, ulong userId, string name, string channelId, string islandSourceId, List<bool> skipAutoOTList,
             PokeRoutineType type, out string msg)
         {
             if (pks == null || pks.Count == 0)
@@ -280,10 +280,10 @@ namespace SysBot.Pokemon.Dodo
             var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : (type == PokeRoutineType.Dump ? PokeTradeType.Dump : PokeTradeType.Specific);
             var detail =
                 new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, true);
-            detail.Context.Add("异国", foreignList);
+            detail.Context.Add("skipAutoOTList", skipAutoOTList);
             if (pks.Count > 0)
             {
-                detail.Context.Add("批量", pks);
+                detail.Context.Add("batch", pks);
             }
             var trade = new TradeEntry<T>(detail, userId, type, name);
 

@@ -65,7 +65,7 @@ namespace SysBot.Pokemon
         public bool AllowTrainerDataOverride { get; set; }
 
         [Category(Generate), Description("Allow users to submit further customization with Batch Editor commands.")]
-        public bool AllowBatchCommands { get; set; }
+        public bool AllowBatchCommands { get; set; } = true;
 
         [Category(Generate), Description("Maximum time in seconds to spend when generating a set before canceling. This prevents difficult sets from freezing the bot.")]
         public int Timeout { get; set; } = 15;
@@ -76,6 +76,6 @@ namespace SysBot.Pokemon
         public bool ResetHOMETracker { get; set; } = true;
 
         [Category(Misc), Description("Override trainer data by trade partner")]
-        public bool UseTradePartnerInfo { get; set; } = false;
+        public bool UseTradePartnerInfo { get; set; } = true;
     }
 }

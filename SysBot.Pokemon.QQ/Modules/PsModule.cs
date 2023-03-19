@@ -51,7 +51,7 @@ namespace SysBot.Pokemon.QQ
         private void ProcessChinesePS(string text, string qq, string nickName, string groupId)
         {
             LogUtil.LogInfo($"收到中文ps代码:\n{text}", nameof(PsModule<T>));
-            var pss = text.Split("\n\n");
+            var pss = text.Split("+");
             if (pss.Length > 1)
                 MiraiQQHelper<T>.StartTradeMultiChinese(text, qq, nickName, groupId);
             else

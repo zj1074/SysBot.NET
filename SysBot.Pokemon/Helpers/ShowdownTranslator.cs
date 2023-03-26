@@ -384,6 +384,19 @@ namespace SysBot.Pokemon
             return result;
         }
 
+        public static bool IsPS(string str)
+        {
+            var gameStrings = GameStringsEn;
+            for (int i = 1; i < gameStrings.Species.Count; i++)
+            {
+                if (str.Contains(gameStrings.Species[i]))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         #region 形态中文ps字典，感谢ppllouf
         public static Dictionary<string,string> formDict = new Dictionary<string,string> {
             {"阿罗拉","Alola"},

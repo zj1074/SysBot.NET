@@ -74,7 +74,8 @@ namespace SysBot.Pokemon.Dodo
                 var p = GetPKM(downloadBytes);
                 if (p is TP pkm)
                 {
-                    DodoHelper<TP>.StartTrade(pkm, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                    //DodoHelper<TP>.StartTrade(pkm, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                    new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradePKM(pkm);
                 }
 
                 return;
@@ -92,25 +93,28 @@ namespace SysBot.Pokemon.Dodo
             if (!content.Contains($"<@!{_botDodoSourceId}>")) return;
 
             content = content.Substring(content.IndexOf('>') + 1);
-            if (content.Trim().StartsWith("trade"))
+            if (typeof(TP) == typeof(PK9) && content.Contains("\n\n") && ShowdownTranslator<TP>.IsPS(content))// 仅SV支持批量，其他偷懒还没写
             {
-                content = content.Replace("trade", "");
-                DodoHelper<TP>.StartTrade(content, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                //DodoHelper<TP>.StartTradeMultiPs(content.Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradeMultiPs(content.Trim());
                 return;
-            } 
+            }
+            else if (ShowdownTranslator<TP>.IsPS(content))
+            {
+                //DodoHelper<TP>.StartTrade(content.Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradePs(content.Trim());
+                return;
+            }
             else if (content.Trim().StartsWith("dump"))
             {
-                DodoHelper<TP>.StartDump(eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId);
+                //DodoHelper<TP>.StartDump(eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId);
+                new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartDump();
                 return;
             }
-            else if (typeof(TP) == typeof(PK9) && content.Trim().Contains("+"))// 仅SV支持批量，其他偷懒还没写
+            else if (typeof(TP) == typeof(PK9) && content.Trim().Contains('+'))// 仅SV支持批量，其他偷懒还没写
             {
-                DodoHelper<TP>.StartTradeMultiChinese(content.Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
-                return;
-            }
-            else if (typeof(TP) == typeof(PK9) && content.Trim().Contains("队伍"))// 仅SV支持批量，其他偷懒还没写
-            {
-                DodoHelper<TP>.StartTradeMultiPs(content.Replace("队伍", "").Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                //DodoHelper<TP>.StartTradeMultiChinese(content.Trim(), eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradeMultiChinesePs(content.Trim());
                 return;
             }
 
@@ -118,7 +122,8 @@ namespace SysBot.Pokemon.Dodo
             if (!string.IsNullOrWhiteSpace(ps))
             {
                 LogUtil.LogInfo($"收到命令\n{ps}", LogIdentity);
-                DodoHelper<TP>.StartTrade(ps, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                //DodoHelper<TP>.StartTrade(ps, eventBody.DodoSourceId, eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId);
+                new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradePs(ps);
             }
             else if (content.Contains("取消"))
             {
@@ -163,17 +168,9 @@ namespace SysBot.Pokemon.Dodo
 
         private static bool ValidFileSize(long size)
         {
-            if (typeof(TP) == typeof(PK8) || typeof(TP) == typeof(PB8) || typeof(TP) == typeof(PK9))
-            {
-                return size == 344;
-            }
-
-            if (typeof(TP) == typeof(PA8))
-            {
-                return size == 376;
-            }
-
-            return false;
+            if (typeof(TP) == typeof(PK8) || typeof(TP) == typeof(PB8) || typeof(TP) == typeof(PK9)) return size == 344;
+            else if (typeof(TP) == typeof(PA8)) return size == 376;
+            else return false;
         }
 
         private static bool ValidFileName(string fileName)
@@ -198,5 +195,6 @@ namespace SysBot.Pokemon.Dodo
         {
             // Do nothing
         }
+
     }
 }

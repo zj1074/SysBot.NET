@@ -1,6 +1,8 @@
 ﻿using PKHeX.Core;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace SysBot.Pokemon
 {
@@ -43,7 +45,7 @@ namespace SysBot.Pokemon
             }
 
             // 识别地区形态
-            foreach (var s in formDict)
+            foreach (var s in ShowdownTranslatorDictionary.formDict)
             {
                 var searchKey = s.Key.EndsWith("形态") ? s.Key : s.Key + "形态";
                 if (!zh.Contains(searchKey)) continue;
@@ -104,25 +106,14 @@ namespace SysBot.Pokemon
             }
 
             // 添加异色
-            if (zh.Contains("异色"))
+            foreach (string key in ShowdownTranslatorDictionary.shinyTypes.Keys)
             {
-                result += "\nShiny: Yes";
-                zh = zh.Replace("异色", "");
-            }
-            else if (zh.Contains("闪光"))
-            {
-                result += "\nShiny: Yes";
-                zh = zh.Replace("闪光", "");
-            }
-            else if (zh.Contains("星闪"))
-            {
-                result += "\nShiny: Star";
-                zh = zh.Replace("星闪", "");
-            }
-            else if (zh.Contains("方闪"))
-            {
-                result += "\nShiny: Square";
-                zh = zh.Replace("方闪", "");
+                if (zh.Contains(key))
+                {
+                    result += ShowdownTranslatorDictionary.shinyTypes[key];
+                    zh = zh.Replace(key, "");
+                    break;
+                }
             }
 
             // 添加头目
@@ -165,127 +156,46 @@ namespace SysBot.Pokemon
             }
 
             // 添加个体值
-            if (zh.ToUpper().Contains("6V"))//默认
+            foreach (string key in ShowdownTranslatorDictionary.ivCombos.Keys)
             {
-                result += "\nIVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe";
-                zh = Regex.Replace(zh, "6V|6v", "");
-            }
-            else if (zh.ToUpper().Contains("5V0A"))
-            {
-                result += "\nIVs: 31 HP / 0 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe";
-                zh = Regex.Replace(zh, "5V0A|5v0a", "");
-            }
-            else if (zh.ToUpper().Contains("5V0攻"))
-            {
-                result += "\nIVs: 31 HP / 0 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe";
-                zh = Regex.Replace(zh, "5V0攻|5v0攻", "");
-            }
-            else if (zh.ToUpper().Contains("5V0S"))
-            {
-                result += "\nIVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 0 Spe";
-                zh = Regex.Replace(zh, "5V0S|5v0s", "");
-            }
-            else if (zh.ToUpper().Contains("5V0速"))
-            {
-                result += "\nIVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 0 Spe";
-                zh = Regex.Replace(zh, "5V0速|5v0速", "");
-            }
-            else if (zh.ToUpper().Contains("4V0A0S"))
-            {
-                result += "\nIVs: 31 HP / 0 Atk / 31 Def / 31 SpA / 31 SpD / 0 Spe";
-                zh = Regex.Replace(zh, "4V0A0S|4v0a0s", "");
-            }
-            else if (zh.ToUpper().Contains("4V0攻0速"))
-            {
-                result += "\nIVs: 31 HP / 0 Atk / 31 Def / 31 SpA / 31 SpD / 0 Spe";
-                zh = Regex.Replace(zh, "4V0攻0速|4v0攻0速", "");
+                if (zh.ToUpper().Contains(key))
+                {
+                    result += "\nIVs: " + ShowdownTranslatorDictionary.ivCombos[key];
+                    zh = Regex.Replace(zh, key, "", RegexOptions.IgnoreCase);
+                    break;
+                }
             }
 
             // 添加努力值
             if (zh.Contains("努力值"))
             {
-                result += "\nEVs: ";
+                StringBuilder sb = new();
+                sb.Append("\nEVs: ");
                 zh = zh.Replace("努力值", "");
-                if (Regex.IsMatch(zh, "\\d{1,3}生命"))
+
+                foreach (var stat in ShowdownTranslatorDictionary.statsDict)
                 {
-                    string value = Regex.Match(zh, "(\\d{1,3})生命").Groups?[1]?.Value ?? "";
-                    result += $"{value} HP / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}生命", "");
-                }
-                else if (Regex.IsMatch(zh, "\\d{1,3}Hp"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})Hp").Groups?[1]?.Value ?? "";
-                    result += $"{value} HP / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}Hp", "");
+                    string regexPattern = $@"\d{{1,3}}{stat.Key}";
+                    if (Regex.IsMatch(zh, regexPattern))
+                    {
+                        string value = Regex.Match(zh, $@"(\d{{1,3}}){stat.Key}").Groups[1].Value;
+                        sb.Append($"{value} {stat.Value} / ");
+                        zh = Regex.Replace(zh, regexPattern, "");
+                    }
+                    else if (Regex.IsMatch(zh, $@"\d{{1,3}}{stat.Value}"))
+                    {
+                        string value = Regex.Match(zh, $@"(\d{{1,3}}){stat.Value}").Groups?[1]?.Value ?? "";
+                        sb.Append($"{value} {stat.Value} / ");
+                        zh = Regex.Replace(zh, $@"\d{{1,3}}{stat.Value}", "");
+                    }
                 }
 
-                if (Regex.IsMatch(zh, "\\d{1,3}攻击"))
+                if (sb.ToString().EndsWith("/ "))
                 {
-                    string value = Regex.Match(zh, "(\\d{1,3})攻击").Groups?[1]?.Value ?? "";
-                    result += $"{value} Atk / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}攻击", "");
-                }
-                else if (Regex.IsMatch(zh, "\\d{1,3}Atk"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})Atk").Groups?[1]?.Value ?? "";
-                    result += $"{value} Atk / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}Atk", "");
+                    sb.Remove(sb.Length - 2, 2);
                 }
 
-                if (Regex.IsMatch(zh, "\\d{1,3}防御"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})防御").Groups?[1]?.Value ?? "";
-                    result += $"{value} Def / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}防御", "");
-                }
-                else if (Regex.IsMatch(zh, "\\d{1,3}Def"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})Def").Groups?[1]?.Value ?? "";
-                    result += $"{value} Def / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}Def", "");
-                }
-
-                if (Regex.IsMatch(zh, "\\d{1,3}特攻"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})特攻").Groups?[1]?.Value ?? "";
-                    result += $"{value} SpA / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}特攻", "");
-                }
-                else if (Regex.IsMatch(zh, "\\d{1,3}SpA"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})SpA").Groups?[1]?.Value ?? "";
-                    result += $"{value} SpA / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}SpA", "");
-                }
-
-                if (Regex.IsMatch(zh, "\\d{1,3}特防"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})特防").Groups?[1]?.Value ?? "";
-                    result += $"{value} SpD / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}特防", "");
-                }
-                else if (Regex.IsMatch(zh, "\\d{1,3}SpD"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})SpD").Groups?[1]?.Value ?? "";
-                    result += $"{value} SpD / ";
-                    zh = Regex.Replace(zh, "\\d{1,3}SpD", "");
-                }
-                if (Regex.IsMatch(zh, "\\d{1,3}速度"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})速度").Groups?[1]?.Value ?? "";
-                    result += $"{value} Spe";
-                    zh = Regex.Replace(zh, "\\d{1,3}速度", "");
-                }
-                else if (Regex.IsMatch(zh, "\\d{1,3}Spe"))
-                {
-                    string value = Regex.Match(zh, "(\\d{1,3})Spe").Groups?[1]?.Value ?? "";
-                    result += $"{value} Spe";
-                    zh = Regex.Replace(zh, "\\d{1,3}Spe", "");
-                }
-                if (result.EndsWith("/ "))
-                {
-                    result = result.Substring(0, result.Length - 2);
-                }
+                result += sb.ToString();
             }
 
             // 添加太晶属性
@@ -322,261 +232,50 @@ namespace SysBot.Pokemon
             //添加全回忆技能
             if (typeof(T) == typeof(PK9) || typeof(T) == typeof(PK8))
             {
-                if (zh.Contains("全技能"))
+                if (Regex.IsMatch(zh, "全[技招]式"))
                 {
                     result += "\n.RelearnMoves=$suggestAll";
-                    zh = zh.Replace("全技能", "");
-
-                }
-                else if (zh.Contains("全招式"))
-                {
-                    result += "\n.RelearnMoves=$suggestAll";
-                    zh = zh.Replace("全招式", "");
+                    zh = Regex.Replace(zh, "全[技招]式", "");
                 }
             }
             else if (typeof(T) == typeof(PA8))
             {
-                if (zh.Contains("全技能"))
+                if (Regex.IsMatch(zh, "全[技招]式"))
                 {
                     result += "\n.MoveMastery=$suggestAll";
-                    zh = zh.Replace("全技能", "");
-                }
-                else if (zh.Contains("全招式"))
-                {
-                    result += "\n.MoveMastery=$suggestAll";
-                    zh = zh.Replace("全招式", "");
+                    zh = Regex.Replace(zh, "全[技招]式", "");
                 }
             }
 
-            if (zh.Contains("异国")) { result += "\nLanguage: Italian"; zh = zh.Replace("异国", ""); }
-            else if (zh.Contains("日语")) { result += "\nLanguage: Japanese"; zh = zh.Replace("日语", ""); }
-            else if (zh.Contains("英语")) { result += "\nLanguage: English"; zh = zh.Replace("英语", ""); }
-            else if (zh.Contains("法语")) { result += "\nLanguage: French"; zh = zh.Replace("法语", ""); }
-            else if (zh.Contains("意大利语")) { result += "\nLanguage: Italian"; zh = zh.Replace("意大利语", ""); }
-            else if (zh.Contains("德语")) { result += "\nLanguage: German"; zh = zh.Replace("德语", ""); }
-            else if (zh.Contains("西班牙语")) { result += "\nLanguage: Spanish"; zh = zh.Replace("西班牙语", ""); }
-            else if (zh.Contains("韩语")) { result += "\nLanguage: Korean"; zh = zh.Replace("韩语", ""); }
-            else if (zh.Contains("简体中文")) { result += "\nLanguage: ChineseS"; zh = zh.Replace("简体中文", ""); }
-            else if (zh.Contains("繁体中文")) { result += "\nLanguage: ChineseT"; zh = zh.Replace("繁体中文", ""); }
+            // 语言
+            var lang = ShowdownTranslatorDictionary.languages.Keys.FirstOrDefault(zh.Contains);
+            if (!string.IsNullOrEmpty(lang))
+            {
+                result += $"\nLanguage: {ShowdownTranslatorDictionary.languages[lang]}";
+                zh = zh.Replace(lang, "");
+            }
 
             // 添加技能 原因：PKHeX.Core.ShowdownSet#ParseLines中，若招式数满足4个则不再解析，所以招式文本应放在最后
             for (int moveCount = 0; moveCount < 4; moveCount++)
             {
-                int candidateIndex = -1;
-                int candidateLength = 0;
-                for (int i = 0; i < GameStringsZh.Move.Count; i++)
-                {
-                    if (GameStringsZh.Move[i].Length == 0) continue;
-                    if (!zh.Contains("-" + GameStringsZh.Move[i])) continue;
-                    // 吸取 吸取拳
-                    if (candidateIndex == -1 || GameStringsZh.Move[i].Length > candidateLength)
-                    {
-                        candidateIndex = i;
-                        candidateLength = GameStringsZh.Move[i].Length;
-                    }
-                }
-                if (candidateIndex == -1) continue;
+                var candidate = GameStringsZh.Move
+                    .Where(move => move.Length > 0 && zh.Contains("-" + move))
+                    .OrderByDescending(move => move.Length)
+                    .FirstOrDefault();
 
+                if (candidate == null) continue;
+
+                int candidateIndex = GameStringsZh.Move
+                    .Select((move, index) => new { Move = move, Index = index })
+                    .FirstOrDefault(item => item.Move == candidate)?.Index ?? -1;
                 result += $"\n-{GameStringsEn.Move[candidateIndex]}";
-                zh = zh.Replace("-" + GameStringsZh.Move[candidateIndex], "");
+                zh = zh.Replace("-" + candidate, "");
             }
 
             return result;
         }
 
-        public static bool IsPS(string str)
-        {
-            var gameStrings = GameStringsEn;
-            for (int i = 1; i < gameStrings.Species.Count; i++)
-            {
-                if (str.Contains(gameStrings.Species[i]))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        public static bool IsPS(string str) => GameStringsEn.Species.Skip(1).Any(str.Contains);
 
-        #region 形态中文ps字典，感谢ppllouf
-        public static Dictionary<string,string> formDict = new Dictionary<string,string> {
-            {"阿罗拉","Alola"},
-            {"初始","Original"},
-            {"丰缘","Hoenn"},
-            {"神奥","Sinnoh"},
-            {"合众","Unova"},
-            {"卡洛斯","Kalos"},
-            {"就决定是你了","Partner"},
-            {"搭档","Starter"},
-            {"世界","World"},
-            {"摇滚巨星","Rock-Star"},
-            {"贵妇","Belle"},
-            {"流行偶像","Pop-Star"},
-            {"博士","PhD"},
-            {"面罩摔角手","Libre"},
-            {"换装","Cosplay"},
-            {"伽勒尔","Galar"},
-            {"洗翠","Hisui"},
-            {"帕底亚的样子斗战种","Paldea-Combat"},
-            {"帕底亚的样子火炽种","Paldea-Blaze"},
-            {"帕底亚的样子水澜种","Paldea-Aqua"},
-            {"刺刺耳","Spiky-eared"},
-            {"帕底亚","Paldea"},
-            {"B","B"},
-            {"C","C"},
-            {"D","D"},
-            {"E","E"},
-            {"F","F"},
-            {"G","G"},
-            {"H","H"},
-            {"I","I"},
-            {"J","J"},
-            {"K","K"},
-            {"L","L"},
-            {"M","M"},
-            {"N","N"},
-            {"O","O"},
-            {"P","P"},
-            {"Q","Q"},
-            {"R","R"},
-            {"S","S"},
-            {"T","T"},
-            {"U","U"},
-            {"V","V"},
-            {"W","W"},
-            {"X","X"},
-            {"Y","Y"},
-            {"Z","Z"},
-            {"！","Exclamation"},
-            {"？","Question"},
-            {"太阳的样子","Sunny"},
-            {"雨水的样子","Rainy"},
-            {"雪云的样子","Snowy"},
-            {"原始回归的样子","Primal"},
-            {"攻击形态","Attack"},
-            {"防御形态","Defense"},
-            {"速度形态","Speed"},
-            {"砂土蓑衣","Sandy"},
-            {"垃圾蓑衣","Trash"},
-            {"晴天形态","Sunshine"},
-            {"东海","East"},
-            {"加热","Heat"},
-            {"清洗","Wash"},
-            {"结冰","Frost"},
-            {"旋转","Fan"},
-            {"切割","Mow"},
-            {"起源","Origin"},
-            {"天空","Sky"},
-            {"格斗","Fighting"},
-            {"飞行","Flying"},
-            {"毒","Poison"},
-            {"地面","Ground"},
-            {"岩石","Rock"},
-            {"虫","Bug"},
-            {"幽灵","Ghost"},
-            {"钢","Steel"},
-            {"火","Fire"},
-            {"水","Water"},
-            {"草","Grass"},
-            {"电","Electric"},
-            {"超能力","Psychic"},
-            {"冰","Ice"},
-            {"龙","Dragon"},
-            {"恶","Dark"},
-            {"妖精","Fairy"},
-            {"蓝条纹的样子","Blue"},
-            {"白条纹的样子","White"},
-            {"夏天的样子","Summer"},
-            {"秋天的样子","Autumn"},
-            {"冬天的样子","Winter"},
-            {"灵兽形态","Therian"},
-            {"暗黑","White"},
-            {"焰白","Black"},
-            {"觉悟的样子","Resolute"},
-            {"舞步形态","Pirouette"},
-            {"水流卡带","Douse"},
-            {"闪电卡带","Shock"},
-            {"火焰卡带","Burn"},
-            {"冰冻卡带","Chill"},
-            {"小智版","Ash"},
-            {"冰雪花纹","Icy Snow"},
-            {"雪国花纹","Polar"},
-            {"雪原花纹","Tundra"},
-            {"大陆花纹","Continental"},
-            {"庭院花纹","Garden"},
-            {"高雅花纹","Elegant"},
-            {"摩登花纹","Modern"},
-            {"大海花纹","Marine"},
-            {"群鸟花纹","Archipelago"},
-            {"荒野花纹","High Plains"},
-            {"沙尘花纹","Sandstorm"},
-            {"大河花纹","River"},
-            {"骤雨花纹","Monsoon"},
-            {"热带草原花纹","Savanna"},
-            {"太阳花纹","Sun"},
-            {"大洋花纹","Ocean"},
-            {"热带雨林花纹","Jungle"},
-            {"幻彩花纹","Fancy"},
-            {"球球花纹","Pokeball"},
-            {"蓝花","Blue"},
-            {"橙花","Orange"},
-            {"白花","White"},
-            {"黄花","Yellow"},
-            {"永恒","Eternal"},
-            {"心形造型","Heart"},
-            {"星形造型","Star"},
-            {"菱形造型","Diamond"},
-            {"淑女造型","Debutante"},
-            {"贵妇造型","Matron"},
-            {"绅士造型","Dandy"},
-            {"女王造型","La Reine"},
-            {"歌舞伎造型","Kabuki"},
-            {"国王造型","Pharaoh"},
-            {"小尺寸","Small"},
-            {"大尺寸","Large"},
-            {"特大尺寸","Super"},
-            {"解放","Unbound"},
-            {"啪滋啪滋风格","Pom-Pom"},
-            {"呼拉呼拉风格","Pa’u"},
-            {"轻盈轻盈风格","Sensu"},
-            {"黑夜的样子","Midnight"},
-            {"黄昏的样子","Dusk"},
-            {"流星的样子","Meteor"},
-            {"橙色核心","Orange"},
-            {"黄色核心","Yellow"},
-            {"绿色核心","Green"},
-            {"浅蓝色核心","Blue"},
-            {"蓝色核心","Indigo"},
-            {"紫色核心","Violet"},
-            {"黄昏之鬃","Dusk-Mane"},
-            {"拂晓之翼","Dawn-Wings"},
-            {"究极","Ultra"},
-            {"５００年前的颜色","Original"},
-            {"低调的样子","Low-Key"},
-            {"真品","Antique"},
-            {"奶香红钻","Ruby-Cream"},
-            {"奶香抹茶","Matcha-Cream"},
-            {"奶香薄荷","Mint-Cream"},
-            {"奶香柠檬","Lemon-Cream"},
-            {"奶香雪盐","Salted-Cream"},
-            {"红钻综合","Ruby-Swirl"},
-            {"焦糖综合","Caramel-Swirl"},
-            {"三色综合","Rainbow-Swirl"},
-            {"剑之王","Crowned"},
-            {"盾之王","Crowned"},
-            {"无极巨化","Eternamax"},
-            {"连击流","Rapid-Strike"},
-            {"阿爸","Dada"},
-            {"骑白马的样子","Ice"},
-            {"骑黑马的样子","Shadow"},
-            {"四只家庭","Four"},
-            {"蓝羽毛","Blue"},
-            {"黄羽毛","Yellow"},
-            {"白羽毛","White"},
-            {"下垂姿势","Droopy"},
-            {"平挺姿势","Stretchy"},
-            {"三节形态","Three-Segment"},
-        };
-        #endregion
-        
     }
 }

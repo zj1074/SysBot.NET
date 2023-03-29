@@ -110,5 +110,18 @@ namespace SysBot.Pokemon.QQ
             }
             return pkms;
         }
+
+        private static List<byte[]> bin2List(byte[] bb, int size)
+        {
+            int times = bb.Length % size == 0 ? (bb.Length / size) : (bb.Length / size + 1);
+            List<byte[]> pkmBytes = new();
+            for (var i = 0; i < times; i++)
+            {
+                int start = i * size;
+                int end = (start + size) > bb.Length ? bb.Length : (start + size);
+                pkmBytes.Add(bb[start..end]);
+            }
+            return pkmBytes;
+        }
     }
 }

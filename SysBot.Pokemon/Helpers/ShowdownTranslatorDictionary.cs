@@ -5,6 +5,9 @@ namespace SysBot.Pokemon
     public class ShowdownTranslatorDictionary
     {
 
+        // 添加持有物
+        public static List<string> holdItemKeywords = new List<string> { "持有", "携带" };
+
         // 添加异色
         public static Dictionary<string, string> shinyTypes = new Dictionary<string, string>
         {

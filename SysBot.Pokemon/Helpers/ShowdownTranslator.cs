@@ -15,34 +15,24 @@ namespace SysBot.Pokemon
             string result = "";
 
             // 添加宝可梦
-            int candidateSpecieNo = 0;
-            int candidateSpecieStringLength = 0;
-            for (int i = 1; i < GameStringsZh.Species.Count; i++)
-            {
-                if (zh.Contains(GameStringsZh.Species[i]) && GameStringsZh.Species[i].Length > candidateSpecieStringLength)
-                {
-                    candidateSpecieNo = i;
-                    candidateSpecieStringLength = GameStringsZh.Species[i].Length;
-                }
-            }
+            int specieNo = GameStringsZh.Species.Skip(1).Select((s, index) => new { Species = s, Index = index + 1 })
+                .Where(s => zh.Contains(s.Species)).OrderByDescending(s => s.Species.Length).FirstOrDefault()?.Index ?? -1;
 
-            if (candidateSpecieNo > 0)
+            if (specieNo <= 0) return result;
+            result = specieNo switch
             {
-                if (candidateSpecieNo == (int)Species.NidoranF) result = "Nidoran-F";
-                else if (candidateSpecieNo == (int)Species.NidoranM) result = "Nidoran-M";
-                else result += GameStringsEn.Species[candidateSpecieNo];
+                (int)Species.NidoranF => "Nidoran-F",
+                (int)Species.NidoranM => "Nidoran-M",
+                _ => GameStringsEn.Species[specieNo],
+            };
 
-                zh = zh.Replace(GameStringsZh.Species[candidateSpecieNo], "");
+            zh = zh.Replace(GameStringsZh.Species[specieNo], "");
 
-                // 特殊性别差异
-                // 29-尼多兰F，32-尼多朗M，678-超能妙喵F，876-爱管侍F，902-幽尾玄鱼F, 916-飘香豚
-                if (((Species)candidateSpecieNo is Species.Meowstic or Species.Indeedee or Species.Basculegion or Species.Oinkologne) 
-                    && zh.Contains("母")) result += "-F";
-            }
-            else
-            {
-                return result;
-            }
+            // 特殊性别差异
+            // 29-尼多兰F，32-尼多朗M，678-超能妙喵F，876-爱管侍F，902-幽尾玄鱼F, 916-飘香豚
+            if (((Species)specieNo is Species.Meowstic or Species.Indeedee or Species.Basculegion or Species.Oinkologne)
+                && zh.Contains("母")) result += "-F";
+
 
             // 识别地区形态
             foreach (var s in ShowdownTranslatorDictionary.formDict)
@@ -67,25 +57,15 @@ namespace SysBot.Pokemon
             }
 
             // 添加持有物
-            if (zh.Contains("持有"))
+            foreach (var holdItemKeyword in ShowdownTranslatorDictionary.holdItemKeywords)
             {
+                if (!zh.Contains(holdItemKeyword)) continue;
                 for (int i = 1; i < GameStringsZh.Item.Count; i++)
                 {
                     if (GameStringsZh.Item[i].Length == 0) continue;
-                    if (!zh.Contains("持有" + GameStringsZh.Item[i])) continue;
+                    if (!zh.Contains(holdItemKeyword + GameStringsZh.Item[i])) continue;
                     result += $" @ {GameStringsEn.Item[i]}";
-                    zh = zh.Replace("持有" + GameStringsZh.Item[i], "");
-                    break;
-                }
-            }
-            else if (zh.Contains("携带"))
-            {
-                for (int i = 1; i < GameStringsZh.Item.Count; i++)
-                {
-                    if (GameStringsZh.Item[i].Length == 0) continue;
-                    if (!zh.Contains("携带" + GameStringsZh.Item[i])) continue;
-                    result += $" @ {GameStringsEn.Item[i]}";
-                    zh = zh.Replace("携带" + GameStringsZh.Item[i], "");
+                    zh = zh.Replace(holdItemKeyword + GameStringsZh.Item[i], "");
                     break;
                 }
             }
@@ -222,7 +202,7 @@ namespace SysBot.Pokemon
             {
                 result += $"\n.Scale=255\n.RibbonMarkJumbo=True";
                 zh = zh.Replace("大个子", "");
-            } 
+            }
             else if (typeof(T) == typeof(PK9) && zh.Contains("小不点"))
             {
                 result += $"\n.Scale=0\n.RibbonMarkMini=True";
@@ -258,18 +238,12 @@ namespace SysBot.Pokemon
             // 添加技能 原因：PKHeX.Core.ShowdownSet#ParseLines中，若招式数满足4个则不再解析，所以招式文本应放在最后
             for (int moveCount = 0; moveCount < 4; moveCount++)
             {
-                var candidate = GameStringsZh.Move
-                    .Where(move => move.Length > 0 && zh.Contains("-" + move))
-                    .OrderByDescending(move => move.Length)
-                    .FirstOrDefault();
-
-                if (candidate == null) continue;
-
-                int candidateIndex = GameStringsZh.Move
-                    .Select((move, index) => new { Move = move, Index = index })
-                    .FirstOrDefault(item => item.Move == candidate)?.Index ?? -1;
+                var candidateIndex = GameStringsZh.Move.Select((move, index) => new { Move = move, Index = index })
+                    .Where(move => move.Move.Length > 0 && zh.Contains("-" + move.Move))
+                    .OrderByDescending(move => move.Move.Length).FirstOrDefault()?.Index ?? -1;
+                if (candidateIndex < 0) continue;
                 result += $"\n-{GameStringsEn.Move[candidateIndex]}";
-                zh = zh.Replace("-" + candidate, "");
+                zh = zh.Replace("-" + GameStringsZh.Move[candidateIndex], "");
             }
 
             return result;

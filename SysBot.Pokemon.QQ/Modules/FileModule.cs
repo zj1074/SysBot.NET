@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Reflection;
 
 namespace SysBot.Pokemon.QQ
 {
@@ -91,9 +92,9 @@ namespace SysBot.Pokemon.QQ
                 return;
             }
             if (pkms != null && pkms.Count > 0)
-                MiraiQQHelper<PK9>.StartTradeMulti(pkms, senderQQ, nickname, groupId);
+                new MiraiQQTrade<PK9>(senderQQ, nickname).StartTradeMultiPKM(pkms);
             else
-                MiraiQQHelper<T>.StartTrade((T)pkm, senderQQ, nickname, groupId);
+                new MiraiQQTrade<T>(senderQQ, nickname).StartTradePKM((T)pkm);
         }
 
         private static List<PK9> bin2List(byte[] bb)
@@ -111,17 +112,28 @@ namespace SysBot.Pokemon.QQ
             return pkms;
         }
 
-        private static List<byte[]> bin2List(byte[] bb, int size)
+        private static List<TP> bin2List<TP>(byte[] bb, int size) where TP : PKM, new()
         {
             int times = bb.Length % size == 0 ? (bb.Length / size) : (bb.Length / size + 1);
-            List<byte[]> pkmBytes = new();
+            List<TP> pkmBytes = new();
             for (var i = 0; i < times; i++)
             {
                 int start = i * size;
                 int end = (start + size) > bb.Length ? bb.Length : (start + size);
-                pkmBytes.Add(bb[start..end]);
+                var tp = CreateInstance<TP>(bb[start..end]);
+                if (tp != null) pkmBytes.Add(tp);
             }
             return pkmBytes;
+        }
+
+        private static TP? CreateInstance<TP>(byte[] bytes) where TP : new()
+        {
+            // 获取泛型类型定义
+            var typeDef = typeof(TP).GetGenericTypeDefinition();
+
+            // 创建泛型类型实例
+            var type = typeDef.MakeGenericType(typeof(byte));
+            return (TP)Activator.CreateInstance(type, bytes);
         }
     }
 }

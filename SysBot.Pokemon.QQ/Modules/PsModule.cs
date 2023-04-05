@@ -2,7 +2,6 @@
 using Mirai.Net.Data.Messages.Concretes;
 using Mirai.Net.Data.Messages.Receivers;
 using Mirai.Net.Modules;
-using Mirai.Net.Sessions.Http.Managers;
 using Mirai.Net.Utils.Scaffolds;
 using PKHeX.Core;
 using SysBot.Base;
@@ -42,10 +41,10 @@ namespace SysBot.Pokemon.QQ
         {
             LogUtil.LogInfo($"收到ps代码:\n{text}", nameof(PsModule<T>));
             var pss = text.Split("\n\n");
-            if (pss.Length > 1) 
-                MiraiQQHelper<T>.StartTradeMultiPs(text, qq, nickName, groupId);
+            if (pss.Length > 1)
+                new MiraiQQTrade<T>(qq, nickName).StartTradeMultiPs(text);
             else
-                MiraiQQHelper<T>.StartTrade(text, qq, nickName, groupId);
+                new MiraiQQTrade<T>(qq, nickName).StartTradePs(text);
         }
 
         private void ProcessChinesePS(string text, string qq, string nickName, string groupId)
@@ -53,14 +52,12 @@ namespace SysBot.Pokemon.QQ
             LogUtil.LogInfo($"收到中文ps代码:\n{text}", nameof(PsModule<T>));
             var pss = text.Split("+");
             if (pss.Length > 1)
-                MiraiQQHelper<T>.StartTradeMultiChinese(text, qq, nickName, groupId);
+                new MiraiQQTrade<T>(qq, nickName).StartTradeMultiChinesePs(text);
             else
             {
-                string ps = ShowdownTranslator<T>.Chinese2Showdown(text);
-                LogUtil.LogInfo($"中文转换后ps代码:\n{ps}", nameof(PsModule<T>));
-                MiraiQQHelper<T>.StartTrade(ps, qq, nickName, groupId);
+                new MiraiQQTrade<T>(qq, nickName).StartTradeChinesePs(text);
             }
-               
+
         }
 
         private static bool IsChinesePS(string str)

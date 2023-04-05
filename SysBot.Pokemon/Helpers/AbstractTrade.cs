@@ -1,4 +1,5 @@
 ﻿using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using SysBot.Base;
 using System;
 using System.Collections.Generic;
@@ -44,6 +45,7 @@ namespace SysBot.Pokemon.Helpers
         public void StartTradeChinesePs(string chinesePs)
         {
             var ps = ShowdownTranslator<T>.Chinese2Showdown(chinesePs);
+            LogUtil.LogInfo($"中文转换后ps代码:\n{ps}", nameof(AbstractTrade<T>));
             StartTradePs(ps);
         }
         public void StartTradePKM(T pkm)
@@ -203,14 +205,9 @@ namespace SysBot.Pokemon.Helpers
                 PokeRoutineType.Dump, out string message);
             SendMessage(message);
         }
-        public bool CheckPkm(T pkm, out string msg)
-        {
-            if (!queueInfo.GetCanQueue())
-            {
-                msg = "对不起, 我不再接受队列请求!";
-                return false;
-            }
 
+        public bool Check(T pkm, out string msg)
+        {
             try
             {
                 if (!pkm.CanBeTraded())
@@ -218,18 +215,15 @@ namespace SysBot.Pokemon.Helpers
                     msg = $"取消派送, 官方禁止该宝可梦交易!";
                     return false;
                 }
-
                 if (pkm is T pk)
                 {
                     var valid = new LegalityAnalysis(pkm).Valid;
                     if (valid)
                     {
-                        msg =
-                            $"已加入等待队列. 如果你选宝可梦的速度太慢，你的派送请求将被取消!";
+                        msg = $"已加入等待队列. 如果你选宝可梦的速度太慢，你的派送请求将被取消!";
                         return true;
                     }
                 }
-
                 var reason = "我没办法创造非法宝可梦";
                 msg = $"{reason}";
             }
@@ -238,8 +232,16 @@ namespace SysBot.Pokemon.Helpers
                 LogUtil.LogSafe(ex, nameof(AbstractTrade<T>));
                 msg = $"取消派送, 发生了一个错误";
             }
-
             return false;
+        }
+        public bool CheckPkm(T pkm, out string msg)
+        {
+            if (!queueInfo.GetCanQueue())
+            {
+                msg = "对不起, 我不再接受队列请求!";
+                return false;
+            }
+            return Check(pkm, out msg);
         }
 
         public bool CheckAndGetPkm(string setstring, out string msg, out T outPkm)
@@ -271,30 +273,8 @@ namespace SysBot.Pokemon.Helpers
                 var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
                 GenerationFix(sav);
                 var pkm = sav.GetLegal(template, out var result);
-
-                if (!pkm.CanBeTraded())
-                {
-                    msg = $"取消派送, 官方禁止该宝可梦交易!";
-                    return false;
-                }
-
-                if (pkm is T pk)
-                {
-                    var valid = new LegalityAnalysis(pkm).Valid;
-                    if (valid)
-                    {
-                        outPkm = pk;
-
-                        msg =
-                            $"已加入等待队列. 如果你选宝可梦的速度太慢，你的派送请求将被取消!";
-                        return true;
-                    }
-                }
-
-                var reason = result == "Timeout"
-                    ? "宝可梦创造超时"
-                    : "我没办法创造非法宝可梦";
-                msg = $"{reason}";
+                if (pkm.Nickname.ToLower() == "egg" && Breeding.CanHatchAsEgg(pkm.Species)) EggTrade(pkm, template);
+                if (Check(outPkm, out msg)) outPkm = (T)pkm;
             }
             catch (Exception ex)
             {
@@ -307,11 +287,7 @@ namespace SysBot.Pokemon.Helpers
 
         private static void GenerationFix(ITrainerInfo sav)
         {
-            if (typeof(T) == typeof(PK8) || typeof(T) == typeof(PB8) || typeof(T) == typeof(PA8))
-            {
-                var a = sav.GetType().GetProperty("Generation");
-                a?.SetValue(sav, 8);
-            }
+            if (typeof(T) == typeof(PK8) || typeof(T) == typeof(PB8) || typeof(T) == typeof(PA8)) sav.GetType().GetProperty("Generation")?.SetValue(sav, 8);
         }
 
         private bool AddToTradeQueue(T pk, int code, bool skipAutoOT,
@@ -364,6 +340,105 @@ namespace SysBot.Pokemon.Helpers
             }
 
             return true;
+        }
+
+        // https://github.com/Koi-3088/ForkBot.NET/blob/KoiTest/SysBot.Pokemon/Helpers/TradeExtensions.cs
+        public static void EggTrade(PKM pk, IBattleTemplate template)
+        {
+            pk.IsNicknamed = true;
+            pk.Nickname = pk.Language switch
+            {
+                1 => "タマゴ",
+                3 => "Œuf",
+                4 => "Uovo",
+                5 => "Ei",
+                7 => "Huevo",
+                8 => "알",
+                9 or 10 => "蛋",
+                _ => "Egg",
+            };
+
+            pk.IsEgg = true;
+            pk.Egg_Location = pk switch
+            {
+                PB8 => 60010,
+                PK9 => 30023,
+                _ => 60002, //PK8
+            };
+
+            pk.HeldItem = 0;
+            pk.CurrentLevel = 1;
+            pk.EXP = 0;
+            pk.Met_Level = 1;
+            pk.Met_Location = pk switch
+            {
+                PB8 => 65535,
+                PK9 => 0,
+                _ => 30002, //PK8
+            };
+
+            pk.CurrentHandler = 0;
+            pk.OT_Friendship = 1;
+            pk.HT_Name = "";
+            pk.HT_Friendship = 0;
+            pk.ClearMemories();
+            pk.StatNature = pk.Nature;
+            pk.SetEVs(new int[] { 0, 0, 0, 0, 0, 0 });
+
+            pk.SetMarking(0, 0);
+            pk.SetMarking(1, 0);
+            pk.SetMarking(2, 0);
+            pk.SetMarking(3, 0);
+            pk.SetMarking(4, 0);
+            pk.SetMarking(5, 0);
+
+            pk.ClearRelearnMoves();
+
+            if (pk is PK8 pk8)
+            {
+                pk8.HT_Language = 0;
+                pk8.HT_Gender = 0;
+                pk8.HT_Memory = 0;
+                pk8.HT_Feeling = 0;
+                pk8.HT_Intensity = 0;
+                pk8.DynamaxLevel = pk8.GetSuggestedDynamaxLevel(pk8, 0);
+            }
+            else if (pk is PB8 pb8)
+            {
+                pb8.HT_Language = 0;
+                pb8.HT_Gender = 0;
+                pb8.HT_Memory = 0;
+                pb8.HT_Feeling = 0;
+                pb8.HT_Intensity = 0;
+                pb8.DynamaxLevel = pb8.GetSuggestedDynamaxLevel(pb8, 0);
+            }
+            else if (pk is PK9 pk9)
+            {
+                pk9.HT_Language = 0;
+                pk9.HT_Gender = 0;
+                pk9.HT_Memory = 0;
+                pk9.HT_Feeling = 0;
+                pk9.HT_Intensity = 0;
+                pk9.Obedience_Level = 1;
+                pk9.Version = 0;
+                pk9.BattleVersion = 0;
+                pk9.TeraTypeOverride = (MoveType)19;
+            }
+
+            var la = new LegalityAnalysis(pk);
+            var enc = la.EncounterMatch;
+            pk.CurrentFriendship = enc is EncounterStatic s ? s.EggCycles : pk.PersonalInfo.HatchCycles;
+
+            Span<ushort> relearn = stackalloc ushort[4];
+            la.GetSuggestedRelearnMoves(relearn, enc);
+            pk.SetRelearnMoves(relearn);
+
+            pk.SetSuggestedMoves();
+
+            pk.Move1_PPUps = pk.Move2_PPUps = pk.Move3_PPUps = pk.Move4_PPUps = 0;
+            pk.SetMaximumPPCurrent(pk.Moves);
+            pk.SetSuggestedHyperTrainingData();
+            pk.SetSuggestedRibbons(template, enc);
         }
 
     }

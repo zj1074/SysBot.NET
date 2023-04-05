@@ -3,6 +3,9 @@ using SysBot.Base;
 using System;
 using System.Linq;
 using Mirai.Net.Utils.Scaffolds;
+using System.Text.RegularExpressions;
+using System.Threading.Channels;
+using System.Collections.Generic;
 
 namespace SysBot.Pokemon.QQ
 {
@@ -30,7 +33,18 @@ namespace SysBot.Pokemon.QQ
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, string message)
         {
             LogUtil.LogText(message);
-            //SendMessage($"@{info.Trainer.TrainerName}: {message}");
+            if (message.Contains("Found Trading Partner:"))
+            {
+                Regex regex = new Regex("TID: (\\d+)");
+                string tid = regex.Match(message).Groups[1].ToString();
+                regex = new Regex("SID: (\\d+)");
+                string sid = regex.Match(message).Groups[1].ToString();
+                MiraiQQBot<T>.SendGroupMessage(new MessageChainBuilder().Plain($"找到你了，你的SID7:{sid},TID7:{tid}").Build());
+            }
+            else if (message.StartsWith("批量"))
+            {
+                MiraiQQBot<T>.SendGroupMessage(new MessageChainBuilder().Plain(message).Build());
+            }
         }
 
         public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg)
@@ -59,7 +73,13 @@ namespace SysBot.Pokemon.QQ
                 $"@{info.Trainer.TrainerName} (ID: {info.ID}): Initializing trade{receive} with you. Please be ready.";
             msg += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(msg);
-            MiraiQQBot<T>.SendGroupMessage(new MessageChainBuilder().At($"{info.Trainer.ID}").Plain($" 准备交换\n连接密码:{info.Code:0000 0000}\n我的名字:{routine.InGameName}").Build());
+            var text = $"\n派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}\n状态:初始化";
+            List<T> batchPKMs = (List<T>)info.Context.GetValueOrDefault("batch", new List<T>());
+            if (batchPKMs.Count > 1)
+            {
+                text = $"\n批量派送{batchPKMs.Count}只宝可梦\n密码:{info.Code:0000 0000}\n状态:初始化";
+            }
+            MiraiQQBot<T>.SendGroupMessage(new MessageChainBuilder().At($"{info.Trainer.ID}").Plain(text).Build());
         }
 
         public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
@@ -69,7 +89,13 @@ namespace SysBot.Pokemon.QQ
             var message = $"I'm waiting for you{trainer}! My IGN is {routine.InGameName}.";
             message += $" Your trade code is: {info.Code:0000 0000}";
             LogUtil.LogText(message);
-            MiraiQQBot<T>.SendGroupMessage(new MessageChainBuilder().At($"{info.Trainer.ID}").Plain($" 寻找中").Build());
+            var text = $"派送:{ShowdownTranslator<T>.GameStringsZh.Species[Data.Species]}\n密码:{info.Code:0000 0000}\n状态:搜索中";
+            List<T> batchPKMs = (List<T>)info.Context.GetValueOrDefault("batch", new List<T>());
+            if (batchPKMs.Count > 1)
+            {
+                text = $"批量派送{batchPKMs.Count}只宝可梦\n密码:{info.Code:0000 0000}\n状态:搜索中";
+            }
+            MiraiQQBot<T>.SendGroupMessage(new MessageChainBuilder().At($"{info.Trainer.ID}").Plain(text).Build());
         }
 
         public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeSummary message)
@@ -85,7 +111,12 @@ namespace SysBot.Pokemon.QQ
         {
             var msg = $"Details for {result.FileName}: " + message;
             LogUtil.LogText(msg);
-            MiraiQQBot<T>.SendGroupMessage(msg);
+            if (result.Species != 0 && info.Type == PokeTradeType.Dump)
+            {
+                var text =
+                    $"species:{result.Species}\npid:{result.PID}\nec:{result.EncryptionConstant}\nIVs:{string.Join(",", result.IVs)}\nisShiny:{result.IsShiny}";
+                MiraiQQBot<T>.SendGroupMessage(text);
+            }
         }
     }
 }

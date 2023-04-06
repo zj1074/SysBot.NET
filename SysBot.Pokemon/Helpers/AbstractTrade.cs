@@ -277,7 +277,11 @@ namespace SysBot.Pokemon.Helpers
                 GenerationFix(sav);
                 var pkm = sav.GetLegal(template, out var result);
                 if (pkm.Nickname.ToLower() == "egg" && Breeding.CanHatchAsEgg(pkm.Species)) EggTrade(pkm, template);
-                if (Check((T)pkm, out msg)) outPkm = (T)pkm;
+                if (Check((T)pkm, out msg))
+                {
+                    outPkm = (T)pkm;
+                    return true;
+                }
             }
             catch (Exception ex)
             {

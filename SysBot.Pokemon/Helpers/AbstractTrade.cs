@@ -217,13 +217,16 @@ namespace SysBot.Pokemon.Helpers
                 }
                 if (pkm is T pk)
                 {
-                    var valid = new LegalityAnalysis(pkm).Valid;
+                    var la = new LegalityAnalysis(pkm);
+                    var valid = la.Valid;
                     if (valid)
                     {
                         msg = $"已加入等待队列. 如果你选宝可梦的速度太慢，你的派送请求将被取消!";
                         return true;
                     }
+                    LogUtil.LogInfo($"非法原因:\n{la.Report()}", nameof(AbstractTrade<T>));
                 }
+                LogUtil.LogInfo($"pkm type:{pkm.GetType()}, T:{typeof(T)}", nameof(AbstractTrade<T>));
                 var reason = "我没办法创造非法宝可梦";
                 msg = $"{reason}";
             }
@@ -274,7 +277,7 @@ namespace SysBot.Pokemon.Helpers
                 GenerationFix(sav);
                 var pkm = sav.GetLegal(template, out var result);
                 if (pkm.Nickname.ToLower() == "egg" && Breeding.CanHatchAsEgg(pkm.Species)) EggTrade(pkm, template);
-                if (Check(outPkm, out msg)) outPkm = (T)pkm;
+                if (Check((T)pkm, out msg)) outPkm = (T)pkm;
             }
             catch (Exception ex)
             {

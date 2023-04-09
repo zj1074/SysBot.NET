@@ -11,8 +11,8 @@ namespace SysBot.Tests
         static TranslatorTests() => AutoLegalityWrapper.EnsureInitialized(new LegalitySettings());
 
         [Theory]
-        [InlineData("公肯泰罗帕底亚的样子（火）形态", "Tauros-Paldea-Fire (M)")]
-        public void TestForm(string input, string output)
+        [InlineData("公肯泰罗携带大师球6V异色努力值252生命全招式异国-泰山压顶", "Tauros (M) @ Master Ball\nShiny: Yes\nIVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe\nEVs: 252 HP \n.RelearnMoves=$suggestAll\nLanguage: Italian\n-Body Slam")]
+        public void TestTrans(string input, string output)
         {
             var result = ShowdownTranslator<PK9>.Chinese2Showdown(input);
             result.Should().Be(output);
@@ -21,6 +21,8 @@ namespace SysBot.Tests
         [Theory]
         [InlineData("皮卡丘")]
         [InlineData("木木枭")]
+        [InlineData("彩粉蝶-冰雪花纹")]
+        [InlineData("大剑鬼")]
         public void TestLegal(string input)
         {
             var setstring = ShowdownTranslator<PK9>.Chinese2Showdown(input);

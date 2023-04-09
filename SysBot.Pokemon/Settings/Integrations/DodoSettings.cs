@@ -23,5 +23,8 @@ namespace SysBot.Pokemon
 
         [Category(Startup), Description("机器人响应频道id")]
         public string ChannelId { get; set; } = string.Empty;
+
+        [Category(Startup), Description("是否撤回交换消息")]
+        public bool WithdrawTradeMessage { get; set; } = false;
     }
 }

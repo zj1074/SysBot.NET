@@ -432,7 +432,7 @@ namespace SysBot.Pokemon
             if (tradeswsh.Valid)
             {
                 Log($"Pokemon is valid, use trade partnerInfo");
-                await SetBoxPokemon(cln, InjectBox, InjectSlot, token, sav).ConfigureAwait(false);
+                await SetBoxPokemon(cln, 0, 0, token, sav).ConfigureAwait(false);
             }
             else
             {

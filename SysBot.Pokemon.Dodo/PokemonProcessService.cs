@@ -66,7 +66,7 @@ namespace SysBot.Pokemon.Dodo
 
             if (eventBody.MessageBody is MessageBodyFile messageBodyFile)
             {
-                if (!FileTradeHelper<TP>.ValidFileSize(messageBodyFile.Size ?? 0) && !FileTradeHelper<TP>.ValidFileName(messageBodyFile.Name))
+                if (!FileTradeHelper<TP>.ValidFileSize(messageBodyFile.Size ?? 0) || !FileTradeHelper<TP>.ValidFileName(messageBodyFile.Name))
                 {
                     ProcessWithdraw(eventBody.MessageId);
                     DodoBot<TP>.SendChannelMessage("非法文件", eventBody.ChannelId);

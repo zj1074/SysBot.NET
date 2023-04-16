@@ -38,14 +38,14 @@ namespace SysBot.Pokemon.Helpers
         public static bool ValidFileName(string fileName)
         {
             string ext = fileName?.Split('.').Last().ToLower() ?? "";
-            return ext == typeof(T).Name.ToLower() || ext == "bin";
+            return (ext == typeof(T).Name.ToLower()) || (ext == "bin");
         }
         /// <summary>
         /// 文件大小是否有效
         /// </summary>
         /// <param name="size"></param>
         /// <returns></returns>
-        public static bool ValidFileSize(long size) => size == pkmSize[typeof(T)];
+        public static bool ValidFileSize(long size) => (size == pkmSize[typeof(T)]) || (size % pkmSize[typeof(T)] == 0);
 
         static PKM? GetPKM(byte[] ba) => typeof(T) switch
         {

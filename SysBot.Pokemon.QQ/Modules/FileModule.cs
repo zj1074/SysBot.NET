@@ -33,7 +33,7 @@ namespace SysBot.Pokemon.QQ
             if (fileMessage == null) return;
             LogUtil.LogInfo("In file module", nameof(FileModule<T>));
             var fileName = fileMessage.Name;
-            if (!FileTradeHelper<T>.ValidFileName(fileName) && !FileTradeHelper<T>.ValidFileSize(fileMessage.Size))
+            if (!FileTradeHelper<T>.ValidFileName(fileName) || !FileTradeHelper<T>.ValidFileSize(fileMessage.Size))
             {
                 await MessageManager.SendGroupMessageAsync(groupId, "非法文件");
                 return;

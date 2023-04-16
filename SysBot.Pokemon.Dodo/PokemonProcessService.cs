@@ -7,6 +7,7 @@ using DoDo.Open.Sdk.Models.Messages;
 using DoDo.Open.Sdk.Services;
 using PKHeX.Core;
 using SysBot.Base;
+using SysBot.Pokemon.Helpers;
 
 namespace SysBot.Pokemon.Dodo
 {
@@ -65,20 +66,22 @@ namespace SysBot.Pokemon.Dodo
 
             if (eventBody.MessageBody is MessageBodyFile messageBodyFile)
             {
-                if (!ValidFileSize(messageBodyFile.Size ?? 0) || !ValidFileName(messageBodyFile.Name))
+                if (!FileTradeHelper<TP>.ValidFileSize(messageBodyFile.Size ?? 0) && !FileTradeHelper<TP>.ValidFileName(messageBodyFile.Name))
                 {
+                    ProcessWithdraw(eventBody.MessageId);
                     DodoBot<TP>.SendChannelMessage("非法文件", eventBody.ChannelId);
                     return;
                 }
                 using var client = new HttpClient();
                 var downloadBytes = client.GetByteArrayAsync(messageBodyFile.Url).Result;
-                var p = GetPKM(downloadBytes);
-                if (p is TP pkm)
-                {
-                    ProcessWithdraw(eventBody.MessageId);
-                    new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradePKM(pkm);
-                }
-
+                var pkms = FileTradeHelper<TP>.Bin2List(downloadBytes);
+                ProcessWithdraw(eventBody.MessageId);
+                if (pkms.Count == 1) 
+                    new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradePKM(pkms[0]);
+                else if (pkms.Count is > 1 and <= 960) 
+                    new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradeMultiPKM(pkms);
+                else
+                    DodoBot<TP>.SendChannelMessage("文件内容不正确", eventBody.ChannelId);
                 return;
             }
 
@@ -165,30 +168,6 @@ namespace SysBot.Pokemon.Dodo
                 QueueResultRemove.Removed => "已删除",
                 _ => "你不在队列里",
             };
-        }
-
-        private static bool ValidFileSize(long size)
-        {
-            if (typeof(TP) == typeof(PK8) || typeof(TP) == typeof(PB8) || typeof(TP) == typeof(PK9)) return size == 344;
-            else if (typeof(TP) == typeof(PA8)) return size == 376;
-            else return false;
-        }
-
-        private static bool ValidFileName(string fileName)
-        {
-            return (typeof(TP) == typeof(PK8) && fileName.EndsWith("pk8", StringComparison.OrdinalIgnoreCase)
-                    || typeof(TP) == typeof(PB8) && fileName.EndsWith("pb8", StringComparison.OrdinalIgnoreCase)
-                    || typeof(TP) == typeof(PA8) && fileName.EndsWith("pa8", StringComparison.OrdinalIgnoreCase)
-                    || typeof(TP) == typeof(PK9) && fileName.EndsWith("pk9", StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static PKM? GetPKM(byte[] bytes)
-        {
-            if (typeof(TP) == typeof(PK8)) return new PK8(bytes);
-            else if (typeof(TP) == typeof(PB8)) return new PB8(bytes);
-            else if (typeof(TP) == typeof(PA8)) return new PA8(bytes);
-            else if (typeof(TP) == typeof(PK9)) return new PK9(bytes);
-            return null;
         }
 
         private void ProcessWithdraw(string messageId)

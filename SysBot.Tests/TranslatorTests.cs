@@ -23,6 +23,7 @@ namespace SysBot.Tests
         [InlineData("木木枭")]
         [InlineData("彩粉蝶-冰雪花纹")]
         [InlineData("大剑鬼")]
+        [InlineData("火暴兽")]
         public void TestLegal(string input)
         {
             var setstring = ShowdownTranslator<PK9>.Chinese2Showdown(input);

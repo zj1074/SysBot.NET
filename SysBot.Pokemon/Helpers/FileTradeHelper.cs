@@ -45,7 +45,10 @@ namespace SysBot.Pokemon.Helpers
         /// </summary>
         /// <param name="size"></param>
         /// <returns></returns>
-        public static bool ValidFileSize(long size) => (size == pkmSize[typeof(T)]) || (size % pkmSize[typeof(T)] == 0);
+        public static bool ValidFileSize(long size) => ValidPKMFileSize(size) || ValidBinFileSize(size);
+        public static bool ValidPKMFileSize(long size) => size == pkmSize[typeof(T)];
+        public static bool ValidBinFileSize(long size) => (size > 0 && (size <= MaxCountInBin * pkmSizeInBin[typeof(T)]) && (size % pkmSizeInBin[typeof(T)] == 0));
+        public static int MaxCountInBin => maxCountInBin[typeof(T)];
 
         static PKM? GetPKM(byte[] ba) => typeof(T) switch
         {
@@ -62,6 +65,22 @@ namespace SysBot.Pokemon.Helpers
             { typeof(PA8), 376 },
             { typeof(PK9), 344 }
         };
-        
+
+        static readonly Dictionary<Type, int> pkmSizeInBin = new()
+        {
+            { typeof(PK8), 344 },
+            { typeof(PB8), 344 },
+            { typeof(PA8), 360 },
+            { typeof(PK9), 344 }
+        };
+
+        static readonly Dictionary<Type, int> maxCountInBin = new()
+        {
+            { typeof(PK8), 960 },
+            { typeof(PB8), 1200 },
+            { typeof(PA8), 960 },
+            { typeof(PK9), 960 }
+        };
+
     }
 }

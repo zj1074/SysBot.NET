@@ -53,7 +53,7 @@ namespace SysBot.Pokemon.QQ
                 LogUtil.LogError(ex.Message, nameof(FileModule<T>));
                 return;
             }
-            if (pkms.Count is > 1 and <= 960)
+            if (pkms.Count > 1 && pkms.Count <= FileTradeHelper<T>.MaxCountInBin)
                 new MiraiQQTrade<T>(senderQQ, nickname).StartTradeMultiPKM(pkms);
             else if (pkms.Count == 1)
                 new MiraiQQTrade<T>(senderQQ, nickname).StartTradePKM(pkms[0]);

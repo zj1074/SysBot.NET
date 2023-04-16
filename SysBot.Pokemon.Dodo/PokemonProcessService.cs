@@ -78,7 +78,7 @@ namespace SysBot.Pokemon.Dodo
                 ProcessWithdraw(eventBody.MessageId);
                 if (pkms.Count == 1) 
                     new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradePKM(pkms[0]);
-                else if (pkms.Count is > 1 and <= 960) 
+                else if (pkms.Count > 1 && pkms.Count <= FileTradeHelper<TP>.MaxCountInBin) 
                     new DodoTrade<TP>(ulong.Parse(eventBody.DodoSourceId), eventBody.Personal.NickName, eventBody.ChannelId, eventBody.IslandSourceId).StartTradeMultiPKM(pkms);
                 else
                     DodoBot<TP>.SendChannelMessage("文件内容不正确", eventBody.ChannelId);

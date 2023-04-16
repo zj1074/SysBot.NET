@@ -18,7 +18,7 @@ namespace SysBot.Pokemon.Helpers
         /// <returns></returns>
         public static List<T> Bin2List(byte[] bb)
         {
-            int size = pkmSize[typeof(T)];
+            int size = pkmSizeInBin[typeof(T)];
             int times = bb.Length % size == 0 ? (bb.Length / size) : (bb.Length / size + 1);
             List<T> pkmBytes = new();
             for (var i = 0; i < times; i++)
@@ -47,7 +47,7 @@ namespace SysBot.Pokemon.Helpers
         /// <returns></returns>
         public static bool ValidFileSize(long size) => ValidPKMFileSize(size) || ValidBinFileSize(size);
         public static bool ValidPKMFileSize(long size) => size == pkmSize[typeof(T)];
-        public static bool ValidBinFileSize(long size) => (size > 0 && (size <= MaxCountInBin * pkmSizeInBin[typeof(T)]) && (size % pkmSizeInBin[typeof(T)] == 0));
+        public static bool ValidBinFileSize(long size) => (size > 0) && (size <= MaxCountInBin * pkmSizeInBin[typeof(T)]) && (size % pkmSizeInBin[typeof(T)] == 0);
         public static int MaxCountInBin => maxCountInBin[typeof(T)];
 
         static PKM? GetPKM(byte[] ba) => typeof(T) switch

@@ -44,6 +44,13 @@ namespace SysBot.Pokemon
                 break;
             }
 
+            // 识别蛋
+            if (zh.Contains("的蛋"))
+            {
+                result = $"Egg ({result})";
+                zh = zh.Replace("的蛋", "");
+            }
+
             // 添加性别
             if (zh.Contains("公"))
             {

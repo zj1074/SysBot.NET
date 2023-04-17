@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using PKHeX.Core;
 using SysBot.Pokemon;
+using SysBot.Pokemon.Helpers;
 using System.Diagnostics;
 using Xunit;
 
@@ -22,6 +23,7 @@ namespace SysBot.Tests
         [InlineData("皮卡丘")]
         [InlineData("木木枭")]
         [InlineData("彩粉蝶-冰雪花纹")]
+        [InlineData("公小火龙的蛋")]
         [InlineData("大剑鬼")]
         [InlineData("火暴兽")]
         public void TestLegal(string input)
@@ -35,10 +37,14 @@ namespace SysBot.Tests
             var pkm = sav.GetLegal(template, out var result);
             Trace.WriteLine(result.ToString());
 
+            if (pkm.Nickname.ToLower() == "egg" && Breeding.CanHatchAsEgg(pkm.Species)) AbstractTrade<PK9>.EggTrade(pkm, template);
+
             pkm.CanBeTraded().Should().BeTrue();
             (pkm is PK9).Should().BeTrue();
-            var valid = new LegalityAnalysis(pkm).Valid;
-            valid.Should().BeTrue();
+            var la = new LegalityAnalysis(pkm);
+            if (!la.Valid)
+                Trace.WriteLine(la.Report());
+            la.Valid.Should().BeTrue();
         }
 
     }

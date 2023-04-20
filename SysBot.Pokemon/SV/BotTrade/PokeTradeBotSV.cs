@@ -380,7 +380,7 @@ namespace SysBot.Pokemon
                 {
                     await SetBoxPokemonAbsolute(BoxStartOffset, pk9, token, sav).ConfigureAwait(false);
                 }
-                if (batchPK9s.Count > 1) poke.SendNotification(this, $"批量:等待交换第{i+1}个宝可梦{ShowdownTranslator<PK9>.GameStringsZh.Species[pk9.Species]}");
+                if (batchPK9s.Count > 1) poke.SendNotification(this, $"批量:等待交换第{i+1}只宝可梦{ShowdownTranslator<PK9>.GameStringsZh.Species[pk9.Species]}");
                 
                 var needUseTradePartnerInfo = !skipAutoOTList[i];
                 if (Hub.Config.Legality.UseTradePartnerInfo && needUseTradePartnerInfo)
@@ -425,7 +425,7 @@ namespace SysBot.Pokemon
                     await ExitTradeToPortal(false, token).ConfigureAwait(false);
                     return tradeResult;
                 }
-                if (batchPK9s.Count > 1) poke.SendNotification(this, $"批量:第{i + 1}个宝可梦{ShowdownTranslator<PK9>.GameStringsZh.Species[pk9.Species]}交换完成");
+                if (batchPK9s.Count > 1) poke.SendNotification(this, $"批量:第{i + 1}只宝可梦{ShowdownTranslator<PK9>.GameStringsZh.Species[pk9.Species]}交换完成");
 
                 if (token.IsCancellationRequested)
                 {

@@ -39,6 +39,58 @@ namespace SysBot.Pokemon
             { "速度", "Spe" }
         };
 
+        public static Dictionary<string, string> ribbonMarks = new()
+        {
+            { "最强之证", "\n.RibbonMarkMightiest=True" },
+            { "未知之证", "\n.RibbonMarkRare=True" },
+            { "命运之证", "\n.RibbonMarkDestiny=True" },
+            { "暴雪之证", "\n.RibbonMarkBlizzard=True" },
+            { "阴云之证", "\n.RibbonMarkCloudy=True" },
+            { "正午之证", "\n.RibbonMarkLunchtime=True" },
+            { "浓雾之证", "\n.RibbonMarkMisty=True" },
+            { "降雨之证", "\n.RibbonMarkRainy=True" },
+            { "沙尘之证", "\n.RibbonMarkSandstorm=True" },
+            { "午夜之证", "\n.RibbonMarkSleepyTime=True" },
+            { "降雪之证", "\n.RibbonMarkSnowy=True" },
+            { "落雷之证", "\n.RibbonMarkStormy=True" },
+            { "干燥之证", "\n.RibbonMarkDry=True" },
+            { "黄昏之证", "\n.RibbonMarkDusk=True" },
+            { "拂晓之证", "\n.RibbonMarkDawn=True" },
+            { "上钩之证", "\n.RibbonMarkFishing=True" },
+            { "咖喱之证", "\n.RibbonMarkCurry=True" },
+            { "无虑之证", "\n.RibbonMarkAbsentMinded=True" },
+            { "愤怒之证", "\n.RibbonMarkAngry=True" },
+            { "冷静之证", "\n.RibbonMarkCalmness=True" },
+            { "领袖之证", "\n.RibbonMarkCharismatic=True" },
+            { "狡猾之证", "\n.RibbonMarkCrafty=True" },
+            { "期待之证", "\n.RibbonMarkExcited=True" },
+            { "本能之证", "\n.RibbonMarkFerocious=True" },
+            { "动摇之证", "\n.RibbonMarkFlustered=True" },
+            { "木讷之证", "\n.RibbonMarkHumble=True" },
+            { "理性之证", "\n.RibbonMarkIntellectual=True" },
+            { "热情之证", "\n.RibbonMarkIntense=True" },
+            { "捡拾之证", "\n.RibbonMarkItemfinder=True" },
+            { "紧张之证", "\n.RibbonMarkJittery=True" },
+            { "幸福之证", "\n.RibbonMarkJoyful=True" },
+            { "优雅之证", "\n.RibbonMarkKindly=True" },
+            { "激动之证", "\n.RibbonMarkPeeved=True" },
+            { "自信之证", "\n.RibbonMarkPrideful=True" },
+            { "昂扬之证", "\n.RibbonMarkPumpedUp=True" },
+            { "淘气之证", "\n.RibbonMarkRowdy=True" },
+            { "凶悍之证", "\n.RibbonMarkScowling=True" },
+            { "不振之证", "\n.RibbonMarkSlump=True" },
+            { "微笑之证", "\n.RibbonMarkSmiley=True" },
+            { "悲伤之证", "\n.RibbonMarkTeary=True" },
+            { "不纯之证", "\n.RibbonMarkThorny=True" },
+            { "偶遇之证", "\n.RibbonMarkUncommon=True" },
+            { "自卑之证", "\n.RibbonMarkUnsure=True" },
+            { "爽快之证", "\n.RibbonMarkUpbeat=True" },
+            { "活力之证", "\n.RibbonMarkVigor=True" },
+            { "倦怠之证", "\n.RibbonMarkZeroEnergy=True" },
+            { "疏忽之证", "\n.RibbonMarkZonedOut=True" },
+            { "宝主之证", "\n.RibbonMarkTitan=True" }
+        };
+
 
         public static Dictionary<string, string> languages = new Dictionary<string, string>
         {

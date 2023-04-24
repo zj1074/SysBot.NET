@@ -219,18 +219,18 @@ namespace SysBot.Pokemon
             //添加全回忆技能
             if (typeof(T) == typeof(PK9) || typeof(T) == typeof(PK8))
             {
-                if (Regex.IsMatch(zh, "全[技招]式"))
+                if (Regex.IsMatch(zh, "全技能|全招式"))
                 {
                     result += "\n.RelearnMoves=$suggestAll";
-                    zh = Regex.Replace(zh, "全[技招]式", "");
+                    zh = Regex.Replace(zh, "全技能|全招式", "");
                 }
             }
             else if (typeof(T) == typeof(PA8))
             {
-                if (Regex.IsMatch(zh, "全[技招]式"))
+                if (Regex.IsMatch(zh, "全技能|全招式"))
                 {
                     result += "\n.MoveMastery=$suggestAll";
-                    zh = Regex.Replace(zh, "全[技招]式", "");
+                    zh = Regex.Replace(zh, "全技能|全招式", "");
                 }
             }
 

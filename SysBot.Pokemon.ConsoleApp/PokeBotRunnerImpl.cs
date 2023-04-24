@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SysBot.Pokemon.Bilibili;
 using SysBot.Pokemon.QQ;
+using SysBot.Pokemon.Dodo;
 
 namespace SysBot.Pokemon.ConsoleApp
 {
@@ -19,6 +20,7 @@ namespace SysBot.Pokemon.ConsoleApp
         private static TwitchBot<T>? Twitch;
         private MiraiQQBot<T>? QQ;
         private BilibiliLiveBot<T>? Bilibili;
+        private DodoBot<T>? Dodo;
 
         protected override void AddIntegrations()
         {
@@ -27,6 +29,7 @@ namespace SysBot.Pokemon.ConsoleApp
             //add qq bot
             AddQQBot(Hub.Config.QQ);
             AddBilibiliBot(Hub.Config.Bilibili);
+            AddDodoBot(Hub.Config.Dodo);
         }
 
         private void AddTwitchBot(TwitchSettings config)
@@ -72,6 +75,13 @@ namespace SysBot.Pokemon.ConsoleApp
             if (string.IsNullOrWhiteSpace(config.LogUrl) || config.RoomId == 0) return;
             if (Bilibili != null) return;
             Bilibili = new BilibiliLiveBot<T>(config, Hub);
+        }
+
+        private void AddDodoBot(DodoSettings config)
+        {
+            if (string.IsNullOrWhiteSpace(config.BaseApi) || string.IsNullOrWhiteSpace(config.ClientId) || string.IsNullOrWhiteSpace(config.Token)) return;
+            if (Dodo != null) return;
+            Dodo = new DodoBot<T>(config, Hub);
         }
     }
 }

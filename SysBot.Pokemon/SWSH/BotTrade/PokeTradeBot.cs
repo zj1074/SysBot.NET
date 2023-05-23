@@ -19,10 +19,6 @@ namespace SysBot.Pokemon
         private readonly TradeAbuseSettings AbuseSettings;
         public ICountSettings Counts => TradeSettings;
 
-        private static readonly TrackedUserLog PreviousUsers = new();
-        private static readonly TrackedUserLog PreviousUsersDistribution = new();
-        private static readonly TrackedUserLog EncounteredUsers = new();
-
         /// <summary>
         /// Folder to dump received trade data to.
         /// </summary>
@@ -321,7 +317,7 @@ namespace SysBot.Pokemon
             RecordUtil<PokeTradeBot>.Record($"Initiating\t{trainerNID:X16}\t{trainerName}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
             Log($"Found Link Trade partner: {trainerName}-{trainerTID} (ID: {trainerNID})");
 
-            var partnerCheck = await CheckPartnerReputation(poke, trainerNID, trainerName, token).ConfigureAwait(false);
+            var partnerCheck = await CheckPartnerReputation(this, poke, trainerNID, trainerName, AbuseSettings, PreviousUsers, PreviousUsersDistribution, EncounteredUsers, token);
             if (partnerCheck != PokeTradeResult.Success)
             {
                 await ExitSeedCheckTrade(token).ConfigureAwait(false);
@@ -1089,19 +1085,6 @@ namespace SysBot.Pokemon
                 await Click(A, 1_500, token).ConfigureAwait(false);
             await Click(B, 1_500, token).ConfigureAwait(false);
             await Click(B, 1_500, token).ConfigureAwait(false);
-        }
-
-        // Blocks a user from the box during in-game trades.
-        protected async Task BlockUser(CancellationToken token)
-        {
-            Log("Blocking user in-game...");
-            await PressAndHold(RSTICK, 0_750, 0, token).ConfigureAwait(false);
-            await Click(DUP, 0_300, token).ConfigureAwait(false);
-            await Click(A, 1_300, token).ConfigureAwait(false);
-            await Click(A, 1_300, token).ConfigureAwait(false);
-            await Click(DUP, 0_300, token).ConfigureAwait(false);
-            await Click(A, 1_100, token).ConfigureAwait(false);
-            await Click(A, 1_100, token).ConfigureAwait(false);
         }
 
         private async Task<bool> CheckIfSearchingForLinkTradePartner(CancellationToken token)

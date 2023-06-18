@@ -3,10 +3,10 @@ using SysBot.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
-using static SysBot.Pokemon.PokeDataOffsetsSV;
+using System.Threading.Tasks;
 using static SysBot.Base.SwitchButton;
+using static SysBot.Pokemon.PokeDataOffsetsSV;
 
 namespace SysBot.Pokemon
 {
@@ -89,7 +89,11 @@ namespace SysBot.Pokemon
             InitSaveData(sav);
 
             if (!IsValidTrainerData())
+            {
+                await CheckForRAMShiftingApps(token).ConfigureAwait(false);
                 throw new Exception("训练家数据无效。请参考https://docs.qq.com/doc/DSWNwV1pLVnZudnJF");
+            }
+
             if (await GetTextSpeed(token).ConfigureAwait(false) < TextSpeedOption.Fast)
                 throw new Exception("请在游戏中设置文本速度为快速，然后重启机器人");
 

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using static SysBot.Base.SwitchOffsetType;
 
 namespace SysBot.Base
@@ -131,14 +131,15 @@ namespace SysBot.Base
 
         public async Task<string> GetBotbaseVersion(CancellationToken token)
         {
-            var bytes = await ReadRaw(SwitchCommand.GetBotbaseVersion(), 4, token).ConfigureAwait(false);
-            return Encoding.ASCII.GetString(bytes).Trim();
+            // Allows up to 9 characters for version, and trims extra '\0' if unused.
+            var bytes = await ReadRaw(SwitchCommand.GetBotbaseVersion(), 10, token).ConfigureAwait(false);
+            return Encoding.ASCII.GetString(bytes).Trim('\0');
         }
 
         public async Task<string> GetGameInfo(string info, CancellationToken token)
         {
             var bytes = await ReadRaw(SwitchCommand.GetGameInfo(info), 17, token).ConfigureAwait(false);
-            return Encoding.ASCII.GetString(bytes).Trim(new char[] { '\0', '\n'});
+            return Encoding.ASCII.GetString(bytes).Trim(new char[] { '\0', '\n' });
         }
 
         public async Task<bool> IsProgramRunning(ulong pid, CancellationToken token)

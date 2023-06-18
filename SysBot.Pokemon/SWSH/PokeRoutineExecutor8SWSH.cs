@@ -3,20 +3,20 @@ using SysBot.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using static SysBot.Base.SwitchButton;
-using static SysBot.Pokemon.PokeDataOffsets;
+using static SysBot.Pokemon.PokeDataOffsetsSWSH;
 
 namespace SysBot.Pokemon
 {
     /// <summary>
     /// Executor for SW/SH games.
     /// </summary>
-    public abstract class PokeRoutineExecutor8 : PokeRoutineExecutor<PK8>
+    public abstract class PokeRoutineExecutor8SWSH : PokeRoutineExecutor<PK8>
     {
-        protected PokeDataOffsets Offsets { get; } = new();
-        protected PokeRoutineExecutor8(PokeBotState cfg) : base(cfg) { }
+        protected PokeDataOffsetsSWSH Offsets { get; } = new();
+        protected PokeRoutineExecutor8SWSH(PokeBotState cfg) : base(cfg) { }
 
         private static uint GetBoxSlotOffset(int box, int slot) => BoxStartOffset + (uint)(BoxFormatSlotSize * ((30 * box) + slot));
 
@@ -99,7 +99,11 @@ namespace SysBot.Pokemon
             InitSaveData(sav);
 
             if (!IsValidTrainerData())
+            {
+                await CheckForRAMShiftingApps(token).ConfigureAwait(false);
                 throw new Exception("训练家数据无效。请参考https://docs.qq.com/doc/DSWNwV1pLVnZudnJF");
+            }
+
             if (await GetTextSpeed(token).ConfigureAwait(false) < TextSpeedOption.Fast)
                 throw new Exception("请在游戏中设置文本速度为快速，然后重启机器人");
 

@@ -1,12 +1,12 @@
-﻿using System;
+﻿using PKHeX.Core;
+using SysBot.Base;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PKHeX.Core;
-using SysBot.Base;
-using static SysBot.Pokemon.BasePokeDataOffsetsBS;
 using static SysBot.Base.SwitchButton;
+using static SysBot.Pokemon.BasePokeDataOffsetsBS;
 
 namespace SysBot.Pokemon
 {
@@ -83,7 +83,11 @@ namespace SysBot.Pokemon
             InitSaveData(sav);
 
             if (!IsValidTrainerData())
+            {
+                await CheckForRAMShiftingApps(token).ConfigureAwait(false);
                 throw new Exception("训练家数据无效。请参考https://docs.qq.com/doc/DSWNwV1pLVnZudnJF");
+            }
+
             if (await GetTextSpeed(token).ConfigureAwait(false) < TextSpeedOption.Fast)
                 throw new Exception("请在游戏中设置文本速度为快速，然后重启机器人");
 
